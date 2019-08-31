@@ -7,7 +7,10 @@
 namespace Colors {
 constexpr TGAColor White(255, 255, 255, 255);
 constexpr TGAColor Red(255, 0, 0, 255);
-} // namespace Colors
+TGAColor random() { 
+  return TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
+}
+}// namespace Colors
 
 // Draw line segments.
 // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -82,10 +85,11 @@ void triangle_line_sweep(Vec2i a, Vec2i b, Vec2i c, TGAImage &image,
   }
 }
 
-Vec3f barycentric(const std::array<Vec2i,3>& pts, Vec2i P) {
-  Vec3f u = cross(
-      Vec3f(float(pts[2][0] - pts[0][0]), float(pts[1][0] - pts[0][0]), float(pts[0][0] - P[0])),
-      Vec3f(float(pts[2][1] - pts[0][1]), float(pts[1][1] - pts[0][1]), float(pts[0][1] - P[1])));
+Vec3f barycentric(const std::array<Vec2i, 3> &pts, Vec2i P) {
+  Vec3f u = cross(Vec3f(float(pts[2][0] - pts[0][0]),
+                        float(pts[1][0] - pts[0][0]), float(pts[0][0] - P[0])),
+                  Vec3f(float(pts[2][1] - pts[0][1]),
+                        float(pts[1][1] - pts[0][1]), float(pts[0][1] - P[1])));
   /* `pts` and `P` has integer value as coordinates
      so `abs(u[2])` < 1 means `u[2]` is 0, that means
      triangle is degenerate, in this case return something with negative
@@ -95,7 +99,8 @@ Vec3f barycentric(const std::array<Vec2i,3>& pts, Vec2i P) {
   return Vec3f(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
 }
 
-void triangle(const std::array<Vec2i, 3>& pts, TGAImage &image, TGAColor color) {
+void triangle(const std::array<Vec2i, 3> &pts, TGAImage &image,
+              TGAColor color) {
   Vec2i bboxmin(image.get_width() - 1, image.get_height() - 1);
   Vec2i bboxmax(0, 0);
   Vec2i clamp(image.get_width() - 1, image.get_height() - 1);

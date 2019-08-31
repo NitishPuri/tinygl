@@ -6,9 +6,7 @@
 
 constexpr auto MODEL_PATH =
     "D:/tree/rendering/tinyrenderer/obj/african_head.obj";
-constexpr auto OUTFILE =
-    "D:/tree/rendering/tinyrenderer/african_head.tga";
-
+constexpr auto OUTFILE = "D:/tree/rendering/tinyrenderer/african_head_flat.tga";
 
 int main() {
   auto width = 800;
@@ -18,28 +16,29 @@ int main() {
   image.flip_vertically(); // i want to have the origin at the left bottom
   //                         // corner of the image
 
-  triangle({Vec2i{10, 10}, Vec2i{150, 40}, Vec2i{600, 600}}, image,
-           Colors::White);
+  // triangle({Vec2i{10, 10}, Vec2i{150, 40}, Vec2i{600, 600}}, image,
+  //         Colors::White);
 
-  /*
   Model model(MODEL_PATH);
-  auto draw_line = [=, &image](auto v0, auto v1) {
-    int x0 = int((v0.x + 1.) * width / 2.);
-    int y0 = int((v0.y + 1.) * height / 2.);
-    int x1 = int((v1.x + 1.) * width / 2.);
-    int y1 = int((v1.y + 1.) * height / 2.);
-    line({x0, y0}, {x1, y1}, image, Colors::White);
+
+  Vec3f light_dir{0, 0, -1};
+  auto map_to_screen = [=](auto v) {
+    int x = int((v.x + 1.) * width / 2.);
+    int y = int(height - (v.y + 1.) * height / 2.);
+    return Vec2i{x, y};
   };
 
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
-    auto v1 = model.vert(face[0]);
-    auto v2 = model.vert(face[1]);
-    auto v3 = model.vert(face[2]);
-    draw_line(v1, v2);
-    draw_line(v2, v3);
-    draw_line(v1, v2);
-  }*/
+    Vec3f n = (model.vert(face[2]) - model.vert(face[0])) ^
+              (model.vert(face[1]) - model.vert(face[0]));
+    n.normalize();
+    float intensity = n * light_dir;
+    triangle({map_to_screen(model.vert(face[0])),
+              map_to_screen(model.vert(face[1])),
+              map_to_screen(model.vert(face[2]))},
+             image, TGAColor(char(intensity * 255.)));
+  }
 
   image.write_tga_file(OUTFILE);
   return 0;
