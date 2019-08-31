@@ -107,7 +107,7 @@ bool TGAImage::load_rle_data(std::ifstream &in) {
   TGAColor colorbuffer;
   do {
     unsigned char chunkheader = 0;
-    chunkheader = in.get();
+    chunkheader = (unsigned char)in.get();
     if (!in.good()) {
       std::cerr << "an error occured while reading the data\n";
       return false;
@@ -163,9 +163,9 @@ bool TGAImage::write_tga_file(const char *filename, bool rle) {
   }
   TGA_Header header;
   memset((void *)&header, 0, sizeof(header));
-  header.bitsperpixel = bytespp << 3;
-  header.width = width;
-  header.height = height;
+  header.bitsperpixel = static_cast<char>((bytespp << 3));
+  header.width = static_cast<short>(width);
+  header.height = static_cast<short>(height);
   header.datatypecode =
       (bytespp == GRAYSCALE ? (rle ? 11 : 3) : (rle ? 10 : 2));
   header.imagedescriptor = 0x20; // top-left origin
@@ -219,7 +219,7 @@ bool TGAImage::unload_rle_data(std::ofstream &out) {
   unsigned long curpix = 0;
   while (curpix < npixels) {
     unsigned long chunkstart = curpix * bytespp;
-    unsigned long curbyte = curpix * bytespp;
+    unsigned long curbyte = chunkstart;
     unsigned char run_length = 1;
     bool raw = true;
     while (curpix + run_length < npixels && run_length < max_chunk_length) {

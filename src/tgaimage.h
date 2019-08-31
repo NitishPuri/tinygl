@@ -24,6 +24,7 @@ struct TGAColor {
   union {
     struct {
       unsigned char b, g, r, a;
+#pragma warning(suppress: 4201)
     };
     unsigned char raw[4];
     unsigned int val;
