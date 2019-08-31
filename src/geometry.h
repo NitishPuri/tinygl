@@ -10,9 +10,11 @@ template <class t> struct Vec2 {
   union {
     struct {
       t u, v;
+#pragma warning(suppress : 4201)
     };
     struct {
       t x, y;
+#pragma warning(suppress : 4201)
     };
     t raw[2];
   };
@@ -32,9 +34,11 @@ template <class t> struct Vec3 {
   union {
     struct {
       t x, y, z;
+#pragma warning(suppress : 4201)
     };
     struct {
       t ivert, iuv, inorm;
+#pragma warning(suppress : 4201)
     };
     t raw[3];
   };

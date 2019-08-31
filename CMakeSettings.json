@@ -8,9 +8,10 @@
             "inheritEnvironments": [ "msvc_x64" ],
             "buildRoot": "${projectDir}\\build\\Debug_x64",
             "installRoot": "${env.ProgramFiles}\\${name}",
-            "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE:BOOL=ON",
+            "cmakeCommandArgs": "-DCMAKE_VERBOSE_MAKEFILE:BOOL=OFF",
             "buildCommandArgs": "",
-            "ctestCommandArgs": ""
+            "ctestCommandArgs": "",
+            "intelliSenseMode": "windows-msvc-x64"
         },
         {
             "name": "x64-Release",
