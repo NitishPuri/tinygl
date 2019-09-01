@@ -22,14 +22,21 @@ Model::Model(const char *filename) : verts_(), faces_() {
         iss >> v.raw[i];
       verts_.push_back(v);
     } else if (!line.compare(0, 2, "f ")) {
-      std::vector<int> f;
-      int itrash, idx;
+      std::array<Vec3i, 3> f;
+      Vec3i tmp;
+      //int itrash, idx, tidx;
       iss >> trash;
-      while (iss >> idx >> trash >> itrash >> trash >> itrash) {
-        idx--; // in wavefront obj all indices start at 1, not zero
-        f.push_back(idx);
+      int f_count = 0;
+      while (iss >> tmp[0] >> trash >> tmp[1] >> trash >> tmp[2]) {
+        tmp = tmp - Vec3i{1, 1, 1}; // in wavefront obj all indices start at 1, not zero
+        f[f_count++] = tmp;
       }
       faces_.push_back(f);
+    } else if (!line.compare(0, 2, "vt")) {
+      iss >> trash >> trash;
+      Vec2i uv;
+      iss >> uv.u >> uv.v;
+      tex_coords_.emplace_back(uv);
     }
   }
   std::cerr << "# v# " << verts_.size() << " f# " << faces_.size() << std::endl;
@@ -37,10 +44,10 @@ Model::Model(const char *filename) : verts_(), faces_() {
 
 Model::~Model() {}
 
-int Model::nverts() { return (int)verts_.size(); }
+int Model::nverts() const { return (int)verts_.size(); }
 
-int Model::nfaces() { return (int)faces_.size(); }
+int Model::nfaces() const { return (int)faces_.size(); }
 
-std::vector<int> Model::face(int idx) { return faces_[idx]; }
+std::array<Vec3i, 3> Model::face(int idx) const { return faces_[idx]; }
 
-Vec3f Model::vert(int i) { return verts_[i]; }
+Vec3f Model::vert(int i) const { return verts_[i]; }

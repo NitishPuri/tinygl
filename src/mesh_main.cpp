@@ -7,16 +7,23 @@
 
 constexpr auto MODEL_PATH =
     "D:/tree/rendering/tinyrenderer/obj/african_head.obj";
-constexpr auto OUTFILE = "D:/tree/rendering/tinyrenderer/african_head_flat.tga";
+constexpr auto TEXTURE =
+    "D:/tree/rendering/tinyrenderer/obj/african_head_diffuse.tga";
+
+constexpr auto OUTFILE_FLAT =
+    "D:/tree/rendering/tinyrenderer/african_head_flat.tga";
+constexpr auto OUTFILE_COLOR_INTERP =
+    "D:/tree/rendering/tinyrenderer/african_head_color_interp.tga";
+constexpr auto OUTFILE_TEX_INTERP =
+    "D:/tree/rendering/tinyrenderer/african_head_texture_interp.tga";
 
 int main() {
   constexpr auto width = 800;
   constexpr auto height = 800;
-  TGAImage image(width, height, TGAImage::RGB);
-  // image.set(52, 41, Colors::Red);
+  TGAImage image_flat(width, height, TGAImage::RGB);
 
-  // triangle({Vec2i{10, 10}, Vec2i{150, 40}, Vec2i{600, 600}}, image,
-  //         Colors::White);
+  TGAImage texture;
+  texture.read_tga_file(TEXTURE);
 
   Model model(MODEL_PATH);
 
@@ -31,17 +38,20 @@ int main() {
 
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
-    Vec3f n = (model.vert(face[2]) - model.vert(face[0])) ^
-              (model.vert(face[1]) - model.vert(face[0]));
+    auto get_vertex_of_face = [&](auto vidx) {
+      return model.vert(face[vidx][0]);
+    };
+    Vec3f n = (get_vertex_of_face(2) - get_vertex_of_face(0)) ^
+              (get_vertex_of_face(1) - get_vertex_of_face(0));
     n.normalize();
     float intensity = n * light_dir;
-    triangle({map_to_screen(model.vert(face[0])),
-              map_to_screen(model.vert(face[1])),
-              map_to_screen(model.vert(face[2]))},
-             zbuffer, image, TGAColor(char(intensity * 255.)));
+    triangle_flat({map_to_screen(get_vertex_of_face(0)),
+                   map_to_screen(get_vertex_of_face(1)),
+                   map_to_screen(get_vertex_of_face(2))},
+                  zbuffer, image_flat, TGAColor(char(intensity * 255.)));
   }
 
-  image.flip_vertically();
-  image.write_tga_file(OUTFILE);
+  image_flat.flip_vertically();
+  image_flat.write_tga_file(OUTFILE_FLAT);
   return 0;
 }

@@ -24,7 +24,7 @@ struct TGAColor {
   union {
     struct {
       unsigned char b, g, r, a;
-#pragma warning(suppress: 4201)
+#pragma warning(suppress : 4201)
     };
     unsigned char raw[4];
     unsigned int val;
@@ -33,11 +33,11 @@ struct TGAColor {
 
   TGAColor() : val(0), bytespp(1) {}
 
-  constexpr TGAColor(unsigned char R, unsigned char G, unsigned char B, unsigned char A)
+  constexpr TGAColor(unsigned char R, unsigned char G, unsigned char B,
+                     unsigned char A)
       : b(B), g(G), r(R), a(A), bytespp(4) {}
 
-  constexpr TGAColor(unsigned char g)
-    : b(g), g(g), r(g), a(255), bytespp(4) {}
+  constexpr TGAColor(unsigned char g) : b(g), g(g), r(g), a(255), bytespp(4) {}
 
   TGAColor(int v, int bpp) : val(v), bytespp(bpp) {}
 
@@ -55,6 +55,16 @@ struct TGAColor {
       val = c.val;
     }
     return *this;
+  }
+
+  TGAColor operator*(float f) const {
+    return {unsigned char(b * f), unsigned char(g * f), unsigned char(r * f),
+            unsigned char(a * f)};
+  }
+
+  TGAColor operator+(const TGAColor &c) const {
+    return {unsigned char(b + c.b), unsigned char(g + c.g),
+            unsigned char(r + c.r), unsigned char(a + c.a)};
   }
 };
 
@@ -80,7 +90,7 @@ public:
   bool flip_vertically();
   bool scale(int w, int h);
   TGAColor get(int x, int y);
-  bool set(int x, int y, const TGAColor& c);
+  bool set(int x, int y, const TGAColor &c);
   ~TGAImage();
   TGAImage &operator=(const TGAImage &img);
   int get_width();
