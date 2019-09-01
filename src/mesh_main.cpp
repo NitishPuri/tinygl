@@ -21,6 +21,8 @@ int main() {
   constexpr auto width = 800;
   constexpr auto height = 800;
   TGAImage image_flat(width, height, TGAImage::RGB);
+  TGAImage image_color(width, height, TGAImage::RGB);
+  TGAImage image_tex(width, height, TGAImage::RGB);
 
   TGAImage texture;
   texture.read_tga_file(TEXTURE);
@@ -35,23 +37,41 @@ int main() {
   };
 
   std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
+  std::vector<float> zbuffer_col(width * height,
+                                 std::numeric_limits<float>::min());
+  std::vector<float> zbuffer_tex(width * height,
+                                 std::numeric_limits<float>::min());
 
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
-    auto get_vertex_of_face = [&](auto vidx) {
-      return model.vert(face[vidx][0]);
+    auto get_vertex = [&](auto vidx) { return model.vert(face[vidx][0]); };
+    auto get_tex = [&](auto vidx) {
+      auto tex = model.tex(face[vidx][1]);
+      return texture.get(int(tex.u * texture.get_width()), int((1.-tex.v) * texture.get_height()));
     };
-    Vec3f n = (get_vertex_of_face(2) - get_vertex_of_face(0)) ^
-              (get_vertex_of_face(1) - get_vertex_of_face(0));
+    Vec3f n = (get_vertex(2) - get_vertex(0)) ^ (get_vertex(1) - get_vertex(0));
     n.normalize();
+
+    // Flat shading
     float intensity = n * light_dir;
-    triangle_flat({map_to_screen(get_vertex_of_face(0)),
-                   map_to_screen(get_vertex_of_face(1)),
-                   map_to_screen(get_vertex_of_face(2))},
+    triangle_flat({map_to_screen(get_vertex(0)), map_to_screen(get_vertex(1)),
+                   map_to_screen(get_vertex(2))},
                   zbuffer, image_flat, TGAColor(char(intensity * 255.)));
+
+    // Color interpolation
+    triangle_color_interp(
+        {map_to_screen(get_vertex(0)), map_to_screen(get_vertex(1)),
+         map_to_screen(get_vertex(2))},
+        {get_tex(0), get_tex(1), get_tex(2)}, zbuffer_col, image_color);
+
+    // Texture interpolation
   }
 
   image_flat.flip_vertically();
   image_flat.write_tga_file(OUTFILE_FLAT);
+
+  image_color.flip_vertically();
+  image_color.write_tga_file(OUTFILE_COLOR_INTERP);
+
   return 0;
 }
