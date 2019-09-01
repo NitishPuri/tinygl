@@ -85,7 +85,7 @@ public:
   Vec3() : Vec({0, 0, 0}){};
   Vec3(T x, T y, T z) : Vec({x, y, z}){};
   Vec3(const Vec<T, 3> &obj) : Vec(obj) {}
-  inline Vec3<T> operator^(const Vec3<T> &v) const { 
+  inline Vec3<T> operator^(const Vec3<T> &v) const {
     const auto &x = operator[](0), y = operator[](1), z = operator[](2);
     const auto &x2 = v[0], y2 = v[1], z2 = v[2];
     return {y * z2 - z * y2, z * x2 - x * z2, x * y2 - y * x2};
@@ -109,20 +109,22 @@ std::ostream &operator<<(std::ostream &s, Vec<t, Size> &v) {
   return s;
 }
 
-// template <typename t> class Matrix {
-// public:
-//  Matrix(int r = 4, int c = 4);
-//  inline int nrows();
-//  inline int ncols();
-//
-//  static Matrix Identity(int dimensions);
-//  std::vector<t> &operator[](int i);
-//  Matrix operator*(const Matrix &a);
-//
-//  Matrix transpose();
-//  Matrix inverse();
-//
-// private:
-//  std::vector<std::vector<t>> _m;
-//  int _rows, _cols;
-//};
+class Matrix {
+public:
+  Matrix(int r = 4, int c = 4);
+  inline int nrows();
+  inline int ncols();
+
+  static Matrix Identity(int dimensions);
+  std::vector<float> &operator[](int i);
+  Matrix operator*(const Matrix &a);
+
+  Matrix transpose();
+  Matrix inverse();
+
+  friend std::ostream &operator<<(std::ostream &s, Matrix &m);
+
+private:
+  std::vector<std::vector<float>> _m;
+  int _rows, _cols;
+};
