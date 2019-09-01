@@ -92,11 +92,6 @@ public:
   }
 };
 
-//template <>
-//template <>
-//Vec3<int>::Vec3(const Vec<float, 3> &v)
-//    : Vec3{int(v[0] + 0.5f), int(v[1] + 0.5f), int(v[2] + 0.5f)} {}
-
 template <typename T> Vec3<T> cross(Vec3<T> lhs, Vec3<T> rhs) {
   return lhs ^ rhs;
 }

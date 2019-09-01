@@ -13,7 +13,7 @@ target_include_directories(Catch
 )
 
 add_executable(unit_tests 
-                "${PROJECT_SOURCE_DIR}/src/tgaimage.cpp"
+                "${PROJECT_SOURCE_DIR}/tinyrenderer/src/tgaimage.cpp"
                 "tests.cpp")
                 
 target_include_directories(unit_tests
