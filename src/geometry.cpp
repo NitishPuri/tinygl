@@ -23,7 +23,7 @@ std::vector<float> &Matrix::operator[](const int i) {
   return m[i];
 }
 
-Matrix Matrix::operator*(const Matrix &a) {
+Matrix Matrix::operator*(const Matrix &a) const {
   assert(cols == a.rows);
   Matrix result(rows, a.cols);
   for (int i = 0; i < rows; i++) {
@@ -37,7 +37,7 @@ Matrix Matrix::operator*(const Matrix &a) {
   return result;
 }
 
-Matrix Matrix::transpose() {
+Matrix Matrix::transpose() const {
   Matrix result(cols, rows);
   for (int i = 0; i < rows; i++)
     for (int j = 0; j < cols; j++)
@@ -45,7 +45,7 @@ Matrix Matrix::transpose() {
   return result;
 }
 
-Matrix Matrix::inverse() {
+Matrix Matrix::inverse() const{
   assert(rows == cols);
   // augmenting the square matrix with the identity matrix of the same
   // dimensions a => [ai]

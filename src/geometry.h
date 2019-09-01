@@ -83,7 +83,7 @@ public:
 template <typename T> class Vec3 : public Vec<T, 3> {
 public:
   Vec3() : Vec({0, 0, 0}){};
-  Vec3(T x, T y, T z) : Vec({x, y, z}){};
+  Vec3(T x, T y, T z) : Vec({x, y, z}){};  
   Vec3(const Vec<T, 3> &obj) : Vec(obj) {}
   inline Vec3<T> operator^(const Vec3<T> &v) const {
     const auto &x = operator[](0), y = operator[](1), z = operator[](2);
@@ -91,6 +91,11 @@ public:
     return {y * z2 - z * y2, z * x2 - x * z2, x * y2 - y * x2};
   }
 };
+
+//template <>
+//template <>
+//Vec3<int>::Vec3(const Vec<float, 3> &v)
+//    : Vec3{int(v[0] + 0.5f), int(v[1] + 0.5f), int(v[2] + 0.5f)} {}
 
 template <typename T> Vec3<T> cross(Vec3<T> lhs, Vec3<T> rhs) {
   return lhs ^ rhs;
@@ -115,16 +120,16 @@ public:
   inline int nrows();
   inline int ncols();
 
-  static Matrix Identity(int dimensions);
+  static Matrix identity(int dimensions);
   std::vector<float> &operator[](int i);
-  Matrix operator*(const Matrix &a);
+  Matrix operator*(const Matrix &a) const;
 
-  Matrix transpose();
-  Matrix inverse();
+  Matrix transpose() const;
+  Matrix inverse() const;
 
   friend std::ostream &operator<<(std::ostream &s, Matrix &m);
 
 private:
-  std::vector<std::vector<float>> _m;
-  int _rows, _cols;
+  std::vector<std::vector<float>> m;
+  int rows, cols;
 };

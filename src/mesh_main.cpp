@@ -12,9 +12,41 @@ constexpr auto TEXTURE =
 
 constexpr auto OUTFILE_FLAT = "D:/tree/rendering/tinyrenderer/african_head.tga";
 
+constexpr int width = 800;
+constexpr int height = 800;
+constexpr int depth = 255;
+
+// Model *model = NULL;
+// int *zbuffer = NULL;
+// Vec3f light_dir(0, 0, -1);
+// Vec3f camera(0, 0, 3);
+
+Vec3f m2v(Matrix m) {
+  return Vec3f(m[0][0] / m[3][0], m[1][0] / m[3][0], m[2][0] / m[3][0]);
+}
+
+Matrix v2m(Vec3f v) {
+  Matrix m(4, 1);
+  m[0][0] = v[0];
+  m[1][0] = v[1];
+  m[2][0] = v[2];
+  m[3][0] = 1.f;
+  return m;
+}
+
+Matrix viewport(int x, int y, int w, int h) {
+  Matrix m = Matrix::identity(4);
+  m[0][3] = x + w / 2.f;
+  m[1][3] = y + h / 2.f;
+  m[2][3] = depth / 2.f;
+
+  m[0][0] = w / 2.f;
+  m[1][1] = h / 2.f;
+  m[2][2] = depth / 2.f;
+  return m;
+}
+
 int main() {
-  constexpr auto width = 800;
-  constexpr auto height = 800;
   TGAImage image(width, height, TGAImage::RGB);
 
   TGAImage texture;
@@ -23,14 +55,22 @@ int main() {
   Model model(MODEL_PATH);
 
   Vec3f light_dir{0, 0, -1};
-
-  auto map_to_screen = [=](auto v) {
-    int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
-    int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
-    return Vec3f{float(x), float(y), v[2]};
-  };
+  Vec3f camera(0, 0, 3);
 
   std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
+
+  Matrix Projection = Matrix::identity(4);
+  Matrix ViewPort =
+      viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
+  Projection[3][2] = -1.f / camera[2];
+
+  auto map_to_screen = [=](auto v) {
+    //int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
+    //int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
+    //return Vec3f{float(x), float(y), v[2]};
+
+    return m2v(ViewPort * Projection * v2m(v));
+  };
 
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);

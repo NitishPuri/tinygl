@@ -146,18 +146,19 @@ void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
       bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
     }
   }
-  Vec3f P;
-  for (P[0] = bboxmin[0]; P[0] <= bboxmax[0]; P[0]++) {
-    for (P[1] = bboxmin[1]; P[1] <= bboxmax[1]; P[1]++) {
-      Vec3f bc_screen = barycentric(pts, P);
+  //int P;
+  for (int x = int(bboxmin[0]+0.5f); x <= int(bboxmax[0]+0.5f); x++) {
+    for (int y = int(bboxmin[1] + 0.5f); y <= int(bboxmax[1] + 0.5f); y++) {
+      Vec3f bc_screen = barycentric(pts, Vec3f(float(x), float(y), 0.f));
       if (bc_screen[0] < 0 || bc_screen[1] < 0 || bc_screen[2] < 0)
         continue;
-      P[2] = 0;
+      float z = 0;
       for (int i = 0; i < 3; i++)
-        P[2] += pts[i][2] * bc_screen[i];
-      if (zbuffer[int(P[0] + P[1] * image.get_width())] < P[2]) {
-        zbuffer[int(P[0] + P[1] * image.get_width())] = P[2];
-        image.set(int(P[0]), int(P[1]), shader(bc_screen));
+        z += pts[i][2] * bc_screen[i];
+      auto zidx = x + y * image.get_width();
+      if (zbuffer[zidx] < z) {
+        zbuffer[zidx] = z;
+        image.set(x, y, shader(bc_screen));
       }
     }
   }
