@@ -20,6 +20,14 @@ template <class t> struct Vec2 {
   };
   Vec2() : u(0), v(0) {}
   Vec2(t _u, t _v) : u(_u), v(_v) {}
+  Vec2<t> &operator=(const Vec2<t> &V) {
+    if (this != &V) {
+      u = V.u;
+      v = V.v;
+    }
+    return *this;
+  }
+
   inline Vec2<t> operator+(const Vec2<t> &V) const {
     return Vec2<t>(u + V.u, v + V.v);
   }
