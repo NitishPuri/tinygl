@@ -10,6 +10,7 @@ set(TINY_INCLUDE
 
 set (TINY_SOURCE
         "tgaimage.cpp"
+        "geometry.cpp"
         "model.cpp"            
 )
 
