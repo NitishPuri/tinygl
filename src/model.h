@@ -8,7 +8,7 @@ class Model {
 private:
   std::vector<Vec3f> verts_;
   std::vector<std::array<Vec3i, 3>> faces_;
-  std::vector<Vec2i> tex_coords_;
+  std::vector<Vec2f> tex_coords_;
 
 public:
   Model(const char *filename);
@@ -16,5 +16,6 @@ public:
   int nverts() const;
   int nfaces() const;
   Vec3f vert(int i) const;
+  Vec2f tex(int i) const;
   std::array<Vec3i, 3> face(int idx) const;
 };

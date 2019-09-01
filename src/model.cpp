@@ -34,7 +34,7 @@ Model::Model(const char *filename) : verts_(), faces_() {
       faces_.push_back(f);
     } else if (!line.compare(0, 2, "vt")) {
       iss >> trash >> trash;
-      Vec2i uv;
+      Vec2f uv;
       iss >> uv.u >> uv.v;
       tex_coords_.emplace_back(uv);
     }
@@ -51,3 +51,5 @@ int Model::nfaces() const { return (int)faces_.size(); }
 std::array<Vec3i, 3> Model::face(int idx) const { return faces_[idx]; }
 
 Vec3f Model::vert(int i) const { return verts_[i]; }
+
+Vec2f Model::tex(int i) const { return tex_coords_[i]; }
