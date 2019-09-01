@@ -10,19 +10,12 @@ constexpr auto MODEL_PATH =
 constexpr auto TEXTURE =
     "D:/tree/rendering/tinyrenderer/obj/african_head_diffuse.tga";
 
-constexpr auto OUTFILE_FLAT =
-    "D:/tree/rendering/tinyrenderer/african_head_flat.tga";
-constexpr auto OUTFILE_COLOR_INTERP =
-    "D:/tree/rendering/tinyrenderer/african_head_color_interp.tga";
-constexpr auto OUTFILE_TEX_INTERP =
-    "D:/tree/rendering/tinyrenderer/african_head_texture_interp.tga";
+constexpr auto OUTFILE_FLAT = "D:/tree/rendering/tinyrenderer/african_head.tga";
 
 int main() {
   constexpr auto width = 800;
   constexpr auto height = 800;
-  TGAImage image_flat(width, height, TGAImage::RGB);
-  TGAImage image_color(width, height, TGAImage::RGB);
-  TGAImage image_tex(width, height, TGAImage::RGB);
+  TGAImage image(width, height, TGAImage::RGB);
 
   TGAImage texture;
   texture.read_tga_file(TEXTURE);
@@ -30,17 +23,14 @@ int main() {
   Model model(MODEL_PATH);
 
   Vec3f light_dir{0, 0, -1};
+
   auto map_to_screen = [=](auto v) {
-    int x = int(floorf((v.x + 1.f) * width / 2.f + .5f));
-    int y = int(floorf((v.y + 1.f) * height / 2.f + .5f));
-    return Vec3f{float(x), float(y), v.z};
+    int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
+    int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
+    return Vec3f{float(x), float(y), v[2]};
   };
 
   std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
-  std::vector<float> zbuffer_col(width * height,
-                                 std::numeric_limits<float>::min());
-  std::vector<float> zbuffer_tex(width * height,
-                                 std::numeric_limits<float>::min());
 
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
@@ -50,14 +40,18 @@ int main() {
 
     auto get_color = [&](auto vidx) {
       auto tex = get_tex(vidx);
-      return texture.get(int(tex.u * texture.get_width()),
-                         int((1. - tex.v) * texture.get_height()));
+      return texture.get(int(tex[0] * texture.get_width()),
+                         int((1. - tex[1]) * texture.get_height()));
     };
 
     // light intensity
-    Vec3f n = (get_vertex(2) - get_vertex(0)) ^ (get_vertex(1) - get_vertex(0));
+    Vec3f n = Vec3f(get_vertex(2) - get_vertex(0)) ^
+              Vec3f(get_vertex(1) - get_vertex(0));
     n.normalize();
     float intensity = n * light_dir;
+
+    if (intensity < 0)
+      continue;
 
     std::array<Vec3f, 3> vertices{map_to_screen(get_vertex(0)),
                                   map_to_screen(get_vertex(1)),
@@ -67,7 +61,6 @@ int main() {
     auto color_flat = [intensity](auto) {
       return TGAColor(char(intensity * 255.));
     };
-    triangle(vertices, zbuffer, image_flat, color_flat);
 
     // Color interpolation
     auto color_interp = [&get_color](auto bc_screen) {
@@ -77,30 +70,23 @@ int main() {
       }
       return color;
     };
-    triangle(vertices, zbuffer_col, image_color, color_interp);
 
     // Texture interpolation
-    auto tex_interp = [&get_tex, &texture](auto bc_screen) {
+    auto tex_interp = [&get_tex, &texture, intensity](auto bc_screen) {
       Vec2f uv;
       for (int i = 0; i < 3; i++) {
         uv = (uv + (get_tex(i) * bc_screen[i]));
       }
-      auto color = texture.get(int(uv.u * texture.get_width()),
-                               int((1. - uv.v) * texture.get_height()));
+      auto color = texture.get(int(uv[0] * texture.get_width()),
+                               int((1. - uv[1]) * texture.get_height()));
 
       return color;
     };
-    triangle(vertices, zbuffer_tex, image_tex, tex_interp);
+    triangle(vertices, zbuffer, image, tex_interp);
   }
 
-  image_flat.flip_vertically();
-  image_flat.write_tga_file(OUTFILE_FLAT);
-
-  image_color.flip_vertically();
-  image_color.write_tga_file(OUTFILE_COLOR_INTERP);
-
-  image_tex.flip_vertically();
-  image_tex.write_tga_file(OUTFILE_TEX_INTERP);
+  image.flip_vertically();
+  image.write_tga_file(OUTFILE_FLAT);
 
   return 0;
 }

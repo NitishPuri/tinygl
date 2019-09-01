@@ -19,7 +19,7 @@ Model::Model(const char *filename) : verts_(), faces_() {
       iss >> trash;
       Vec3f v;
       for (int i = 0; i < 3; i++)
-        iss >> v.raw[i];
+        iss >> v[i];
       verts_.push_back(v);
     } else if (!line.compare(0, 2, "f ")) {
       std::array<Vec3i, 3> f;
@@ -28,14 +28,14 @@ Model::Model(const char *filename) : verts_(), faces_() {
       iss >> trash;
       int f_count = 0;
       while (iss >> tmp[0] >> trash >> tmp[1] >> trash >> tmp[2]) {
-        tmp = tmp - Vec3i{1, 1, 1}; // in wavefront obj all indices start at 1, not zero
-        f[f_count++] = tmp;
+        // in wavefront obj all indices start at 1, not zero
+        f[f_count++] = tmp - Vec3i(1, 1, 1);
       }
       faces_.push_back(f);
     } else if (!line.compare(0, 2, "vt")) {
       iss >> trash >> trash;
       Vec2f uv;
-      iss >> uv.u >> uv.v;
+      iss >> uv[0] >> uv[1];
       tex_coords_.emplace_back(uv);
     }
   }
