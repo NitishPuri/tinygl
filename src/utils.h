@@ -4,6 +4,7 @@
 
 #include <array>
 #include <vector>
+#include <functional>
 
 namespace Colors {
 constexpr TGAColor White(255, 255, 255, 255);
@@ -131,8 +132,8 @@ void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
   }
 }
 
-void triangle_flat(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
-                   TGAImage &image, TGAColor color) {
+void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
+                   TGAImage &image, std::function<TGAColor(Vec3f)> shader) {
   Vec2f bboxmin(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
   Vec2f bboxmax(-std::numeric_limits<float>::max(),
@@ -155,79 +156,7 @@ void triangle_flat(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
         P.z += pts[i][2] * bc_screen[i];
       if (zbuffer[int(P.x + P.y * image.get_width())] < P.z) {
         zbuffer[int(P.x + P.y * image.get_width())] = P.z;
-        image.set(int(P.x), int(P.y), color);
-      }
-    }
-  }
-}
-
-void triangle_color_interp(const std::array<Vec3f, 3> &pts,
-                           const std::array<TGAColor, 3> &colors,
-                           std::vector<float> &zbuffer, TGAImage &image) {
-  Vec2f bboxmin(std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::max());
-  Vec2f bboxmax(-std::numeric_limits<float>::max(),
-                -std::numeric_limits<float>::max());
-  Vec2f clamp(image.get_width() - 1.f, image.get_height() - 1.f);
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 2; j++) {
-      bboxmin[j] = std::max(0.f, std::min(bboxmin[j], pts[i][j]));
-      bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
-    }
-  }
-  Vec3f P;
-  for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
-    for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
-      Vec3f bc_screen = barycentric(pts, P);
-      if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0)
-        continue;
-      P.z = 0;
-      TGAColor color;
-      for (int i = 0; i < 3; i++) {
-        P.z += pts[i][2] * bc_screen[i];
-        color = (color + (colors.at(i) * bc_screen[i]));
-      }
-      if (zbuffer[int(P.x + P.y * image.get_width())] < P.z) {
-        zbuffer[int(P.x + P.y * image.get_width())] = P.z;
-        image.set(int(P.x), int(P.y), color);
-      }
-    }
-  }
-}
-
-void triangle_tex_interp(const std::array<Vec3f, 3> &pts,
-                         const std::array<Vec2f, 3> &tex_coords,
-                         const TGAImage &texture, std::vector<float> &zbuffer,
-                         TGAImage &image) {
-  Vec2f bboxmin(std::numeric_limits<float>::max(),
-                std::numeric_limits<float>::max());
-  Vec2f bboxmax(-std::numeric_limits<float>::max(),
-                -std::numeric_limits<float>::max());
-  Vec2f clamp(image.get_width() - 1.f, image.get_height() - 1.f);
-  for (int i = 0; i < 3; i++) {
-    for (int j = 0; j < 2; j++) {
-      bboxmin[j] = std::max(0.f, std::min(bboxmin[j], pts[i][j]));
-      bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
-    }
-  }
-  Vec3f P;
-  for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
-    for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
-      Vec3f bc_screen = barycentric(pts, P);
-      if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0)
-        continue;
-      P.z = 0;
-      Vec2f uv;
-
-      for (int i = 0; i < 3; i++) {
-        P.z += pts[i][2] * bc_screen[i];
-        uv = (uv + (tex_coords[i] * bc_screen[i]));
-      }
-      auto color = texture.get(int(uv.u * texture.get_width()),
-                               int((1. - uv.v) * texture.get_height()));
-      if (zbuffer[int(P.x + P.y * image.get_width())] < P.z) {
-        zbuffer[int(P.x + P.y * image.get_width())] = P.z;
-        image.set(int(P.x), int(P.y), color);
+        image.set(int(P.x), int(P.y), shader(bc_screen));
       }
     }
   }

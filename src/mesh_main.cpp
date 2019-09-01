@@ -54,27 +54,43 @@ int main() {
                          int((1. - tex.v) * texture.get_height()));
     };
 
+    // light intensity
     Vec3f n = (get_vertex(2) - get_vertex(0)) ^ (get_vertex(1) - get_vertex(0));
     n.normalize();
+    float intensity = n * light_dir;
+
+    std::array<Vec3f, 3> vertices{map_to_screen(get_vertex(0)),
+                                  map_to_screen(get_vertex(1)),
+                                  map_to_screen(get_vertex(2))};
 
     // Flat shading
-    float intensity = n * light_dir;
-    triangle_flat({map_to_screen(get_vertex(0)), map_to_screen(get_vertex(1)),
-                   map_to_screen(get_vertex(2))},
-                  zbuffer, image_flat, TGAColor(char(intensity * 255.)));
+    auto color_flat = [intensity](auto) {
+      return TGAColor(char(intensity * 255.));
+    };
+    triangle(vertices, zbuffer, image_flat, color_flat);
 
     // Color interpolation
-    triangle_color_interp(
-        {map_to_screen(get_vertex(0)), map_to_screen(get_vertex(1)),
-         map_to_screen(get_vertex(2))},
-        {get_color(0), get_color(1), get_color(2)}, zbuffer_col, image_color);
+    auto color_interp = [&get_color](auto bc_screen) {
+      TGAColor color;
+      for (int i = 0; i < 3; i++) {
+        color = (color + (get_color(i) * bc_screen[i]));
+      }
+      return color;
+    };
+    triangle(vertices, zbuffer_col, image_color, color_interp);
 
     // Texture interpolation
-    triangle_tex_interp({map_to_screen(get_vertex(0)),
-                         map_to_screen(get_vertex(1)),
-                         map_to_screen(get_vertex(2))},
-                        {get_tex(0), get_tex(1), get_tex(2)}, texture,
-                        zbuffer_tex, image_tex);
+    auto tex_interp = [&get_tex, &texture](auto bc_screen) {
+      Vec2f uv;
+      for (int i = 0; i < 3; i++) {
+        uv = (uv + (get_tex(i) * bc_screen[i]));
+      }
+      auto color = texture.get(int(uv.u * texture.get_width()),
+                               int((1. - uv.v) * texture.get_height()));
+
+      return color;
+    };
+    triangle(vertices, zbuffer_tex, image_tex, tex_interp);
   }
 
   image_flat.flip_vertically();
