@@ -10,7 +10,7 @@ constexpr auto MODEL_PATH =
 constexpr auto TEXTURE =
     "D:/tree/rendering/tinyrenderer/obj/african_head_diffuse.tga";
 
-constexpr auto OUTFILE_FLAT = "D:/tree/rendering/tinyrenderer/african_head.tga";
+constexpr auto OUTFILE_WIRE = "D:/tree/rendering/tinyrenderer/african_head.tga";
 
 constexpr int width = 800;
 constexpr int height = 800;
@@ -126,7 +126,7 @@ int main() {
   }
 
   image.flip_vertically();
-  image.write_tga_file(OUTFILE_FLAT);
+  image.write_tga_file(OUTFILE_WIRE);
 
   return 0;
 }
