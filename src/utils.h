@@ -3,14 +3,18 @@
 #include "tgaimage.h"
 
 #include <array>
+#include <vector>
 
 namespace Colors {
 constexpr TGAColor White(255, 255, 255, 255);
 constexpr TGAColor Red(255, 0, 0, 255);
-TGAColor random() { 
+constexpr TGAColor Green(0, 255, 0, 255);
+constexpr TGAColor Blue(0, 0, 255, 255);
+
+TGAColor random() {
   return TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
 }
-}// namespace Colors
+} // namespace Colors
 
 // Draw line segments.
 // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -85,18 +89,20 @@ void triangle_line_sweep(Vec2i a, Vec2i b, Vec2i c, TGAImage &image,
   }
 }
 
-Vec3f barycentric(const std::array<Vec2i, 3> &pts, Vec2i P) {
-  Vec3f u = cross(Vec3f(float(pts[2][0] - pts[0][0]),
-                        float(pts[1][0] - pts[0][0]), float(pts[0][0] - P[0])),
-                  Vec3f(float(pts[2][1] - pts[0][1]),
-                        float(pts[1][1] - pts[0][1]), float(pts[0][1] - P[1])));
-  /* `pts` and `P` has integer value as coordinates
-     so `abs(u[2])` < 1 means `u[2]` is 0, that means
-     triangle is degenerate, in this case return something with negative
-     coordinates */
-  if (std::abs(u[2]) < 1)
-    return Vec3f(-1, 1, 1);
-  return Vec3f(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+template <typename vec>
+Vec3f barycentric(const std::array<vec, 3> &pts, vec P) {
+  Vec3f s[2];
+  for (int i = 0; i <= 1; i++) {
+    s[i][0] = float(pts[2][i] - pts[0][i]);
+    s[i][1] = float(pts[1][i] - pts[0][i]);
+    s[i][2] = float(pts[0][i] - P[i]);
+  }
+  Vec3f u = cross(s[0], s[1]);
+  if (std::abs(u[2]) > 1e-2) // dont forget that u[2] is integer. If it is zero
+                             // then triangle ABC is degenerate
+    return Vec3f(1.f - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
+  return Vec3f(-1, 1, 1); // in this case generate negative coordinates, it will
+                          // be thrown away by the rasterizator
 }
 
 void triangle(const std::array<Vec2i, 3> &pts, TGAImage &image,
@@ -117,6 +123,52 @@ void triangle(const std::array<Vec2i, 3> &pts, TGAImage &image,
       if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0)
         continue;
       image.set(P.x, P.y, color);
+    }
+  }
+}
+
+void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
+                 std::vector<int> &ybuffer) {
+  if (p.x > q.x) {
+    std::swap(p, q);
+  }
+
+  for (int x = p.x; x <= q.x; x++) {
+    float t = (x - p.x) / (float)(q.x - p.x);
+    int y = static_cast<int>(p.y * (1. - t) + q.y * t);
+    if (ybuffer[x] < y) {
+      ybuffer[x] = y;
+      image.set(x, 0, color);
+    }
+  }
+}
+
+void triangle(const std::array<Vec3f, 3> &pts, std::vector<float>& zbuffer, TGAImage &image,
+              TGAColor color) {
+  Vec2f bboxmin(std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max());
+  Vec2f bboxmax(-std::numeric_limits<float>::max(),
+                -std::numeric_limits<float>::max());
+  Vec2f clamp(image.get_width() - 1.f, image.get_height() - 1.f);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 2; j++) {
+      bboxmin[j] = std::max(0.f, std::min(bboxmin[j], pts[i][j]));
+      bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+    }
+  }
+  Vec3f P;
+  for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
+    for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
+      Vec3f bc_screen = barycentric(pts, P);
+      if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0)
+        continue;
+      P.z = 0;
+      for (int i = 0; i < 3; i++)
+        P.z += pts[i][2] * bc_screen[i];
+      if (zbuffer[int(P.x + P.y * image.get_width())] < P.z) {
+        zbuffer[int(P.x + P.y * image.get_width())] = P.z;
+        image.set(int(P.x), int(P.y), color);
+      }
     }
   }
 }

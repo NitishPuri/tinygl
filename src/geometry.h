@@ -64,6 +64,7 @@ template <class t> struct Vec3 {
     return x * v.x + y * v.y + z * v.z;
   }
   inline t operator[](int f) const { return raw[f]; }
+  inline t& operator[](int f) { return raw[f]; }
   float norm() const { return std::sqrt(x * x + y * y + z * z); }
   Vec3<t> &normalize(t l = 1) {
     *this = (*this) * (l / norm());

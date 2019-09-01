@@ -2,6 +2,7 @@
 #include "model.h"
 #include "tgaimage.h"
 #include "utils.h"
+#include <memory>
 #include <string>
 
 constexpr auto MODEL_PATH =
@@ -9,12 +10,10 @@ constexpr auto MODEL_PATH =
 constexpr auto OUTFILE = "D:/tree/rendering/tinyrenderer/african_head_flat.tga";
 
 int main() {
-  auto width = 800;
-  auto height = 800;
+  constexpr auto width = 800;
+  constexpr auto height = 800;
   TGAImage image(width, height, TGAImage::RGB);
   // image.set(52, 41, Colors::Red);
-  image.flip_vertically(); // i want to have the origin at the left bottom
-  //                         // corner of the image
 
   // triangle({Vec2i{10, 10}, Vec2i{150, 40}, Vec2i{600, 600}}, image,
   //         Colors::White);
@@ -23,10 +22,12 @@ int main() {
 
   Vec3f light_dir{0, 0, -1};
   auto map_to_screen = [=](auto v) {
-    int x = int((v.x + 1.) * width / 2.);
-    int y = int(height - (v.y + 1.) * height / 2.);
-    return Vec2i{x, y};
+    int x = int(floorf((v.x + 1.f) * width / 2.f + .5f));
+    int y = int(floorf((v.y + 1.f) * height / 2.f + .5f));
+    return Vec3f{float(x), float(y), v.z};
   };
+
+  std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
 
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
@@ -37,9 +38,10 @@ int main() {
     triangle({map_to_screen(model.vert(face[0])),
               map_to_screen(model.vert(face[1])),
               map_to_screen(model.vert(face[2]))},
-             image, TGAColor(char(intensity * 255.)));
+             zbuffer, image, TGAColor(char(intensity * 255.)));
   }
 
+  image.flip_vertically();
   image.write_tga_file(OUTFILE);
   return 0;
 }
