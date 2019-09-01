@@ -149,7 +149,7 @@ bool TGAImage::load_rle_data(std::ifstream &in) {
   return true;
 }
 
-bool TGAImage::write_tga_file(const char *filename, bool rle) {
+bool TGAImage::write_tga_file(const char *filename, bool rle) const {
   unsigned char developer_area_ref[4] = {0, 0, 0, 0};
   unsigned char extension_area_ref[4] = {0, 0, 0, 0};
   unsigned char footer[18] = {'T', 'R', 'U', 'E', 'V', 'I', 'S', 'I', 'O',
@@ -213,7 +213,7 @@ bool TGAImage::write_tga_file(const char *filename, bool rle) {
 
 // TODO: it is not necessary to break a raw chunk for two equal pixels (for the
 // matter of the resulting size)
-bool TGAImage::unload_rle_data(std::ofstream &out) {
+bool TGAImage::unload_rle_data(std::ofstream &out) const {
   const unsigned char max_chunk_length = 128;
   unsigned long npixels = width * height;
   unsigned long curpix = 0;
@@ -256,14 +256,14 @@ bool TGAImage::unload_rle_data(std::ofstream &out) {
   return true;
 }
 
-TGAColor TGAImage::get(int x, int y) {
+TGAColor TGAImage::get(int x, int y) const {
   if (!data || x < 0 || y < 0 || x >= width || y >= height) {
     return TGAColor();
   }
   return TGAColor(data + (x + y * width) * bytespp, bytespp);
 }
 
-bool TGAImage::set(int x, int y, const TGAColor& c) {
+bool TGAImage::set(int x, int y, const TGAColor &c) {
   if (!data || x < 0 || y < 0 || x >= width || y >= height) {
     return false;
   }
@@ -271,11 +271,11 @@ bool TGAImage::set(int x, int y, const TGAColor& c) {
   return true;
 }
 
-int TGAImage::get_bytespp() { return bytespp; }
+int TGAImage::get_bytespp() const { return bytespp; }
 
-int TGAImage::get_width() { return width; }
+int TGAImage::get_width() const { return width; }
 
-int TGAImage::get_height() { return height; }
+int TGAImage::get_height() const { return height; }
 
 bool TGAImage::flip_horizontally() {
   if (!data)

@@ -61,26 +61,14 @@ void triangle_line_sweep(Vec2i a, Vec2i b, Vec2i c, TGAImage &image,
     std::swap(b, c);
 
   int total_height = c.y - a.y;
-  for (int y = a.y; y <= b.y; y++) {
-    int segment_height = b.y - a.y + 1;
+  for (int y = a.y; y <= c.y; y++) {
+    auto first_seg = (y <= b.y);
+    int segment_height = first_seg ? (b.y - a.y + 1) : (c.y - b.y + 1);
     auto alpha = (float)(y - a.y) / total_height;
-    auto beta =
-        (float)(y - a.y) / segment_height; // be careful with divisions by zero
+    auto beta = (float)(y - (first_seg ? a.y : b.y)) /
+                segment_height; // be careful with divisions by zero
     Vec2i A = a + (c - a) * alpha;
     Vec2i B = a + (b - a) * beta;
-    if (A.x > B.x)
-      std::swap(A, B);
-    for (int j = A.x; j <= B.x; j++) {
-      image.set(j, y, color); // attention, due to int casts t0.y+i != A.y
-    }
-  }
-  for (int y = b.y; y <= c.y; y++) {
-    int segment_height = c.y - b.y + 1;
-    float alpha = (float)(y - a.y) / total_height;
-    float beta =
-        (float)(y - b.y) / segment_height; // be careful with divisions by zero
-    Vec2i A = a + (c - a) * alpha;
-    Vec2i B = b + (c - b) * beta;
     if (A.x > B.x)
       std::swap(A, B);
     for (int j = A.x; j <= B.x; j++) {
@@ -143,8 +131,8 @@ void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
   }
 }
 
-void triangle_flat(const std::array<Vec3f, 3> &pts, std::vector<float>& zbuffer, TGAImage &image,
-              TGAColor color) {
+void triangle_flat(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
+                   TGAImage &image, TGAColor color) {
   Vec2f bboxmin(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
   Vec2f bboxmax(-std::numeric_limits<float>::max(),
@@ -173,9 +161,9 @@ void triangle_flat(const std::array<Vec3f, 3> &pts, std::vector<float>& zbuffer,
   }
 }
 
-
-void triangle_color_interp(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
-              TGAImage &image, const std::array < TGAColor, 3>& colors) {
+void triangle_color_interp(const std::array<Vec3f, 3> &pts,
+                           const std::array<TGAColor, 3> &colors,
+                           std::vector<float> &zbuffer, TGAImage &image) {
   Vec2f bboxmin(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
   Vec2f bboxmax(-std::numeric_limits<float>::max(),
@@ -199,6 +187,44 @@ void triangle_color_interp(const std::array<Vec3f, 3> &pts, std::vector<float> &
         P.z += pts[i][2] * bc_screen[i];
         color = (color + (colors.at(i) * bc_screen[i]));
       }
+      if (zbuffer[int(P.x + P.y * image.get_width())] < P.z) {
+        zbuffer[int(P.x + P.y * image.get_width())] = P.z;
+        image.set(int(P.x), int(P.y), color);
+      }
+    }
+  }
+}
+
+void triangle_tex_interp(const std::array<Vec3f, 3> &pts,
+                         const std::array<Vec2f, 3> &tex_coords,
+                         const TGAImage &texture, std::vector<float> &zbuffer,
+                         TGAImage &image) {
+  Vec2f bboxmin(std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max());
+  Vec2f bboxmax(-std::numeric_limits<float>::max(),
+                -std::numeric_limits<float>::max());
+  Vec2f clamp(image.get_width() - 1.f, image.get_height() - 1.f);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 2; j++) {
+      bboxmin[j] = std::max(0.f, std::min(bboxmin[j], pts[i][j]));
+      bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+    }
+  }
+  Vec3f P;
+  for (P.x = bboxmin.x; P.x <= bboxmax.x; P.x++) {
+    for (P.y = bboxmin.y; P.y <= bboxmax.y; P.y++) {
+      Vec3f bc_screen = barycentric(pts, P);
+      if (bc_screen.x < 0 || bc_screen.y < 0 || bc_screen.z < 0)
+        continue;
+      P.z = 0;
+      Vec2f uv;
+
+      for (int i = 0; i < 3; i++) {
+        P.z += pts[i][2] * bc_screen[i];
+        uv = (uv + (tex_coords[i] * bc_screen[i]));
+      }
+      auto color = texture.get(int(uv.u * texture.get_width()),
+                               int((1. - uv.v) * texture.get_height()));
       if (zbuffer[int(P.x + P.y * image.get_width())] < P.z) {
         zbuffer[int(P.x + P.y * image.get_width())] = P.z;
         image.set(int(P.x), int(P.y), color);

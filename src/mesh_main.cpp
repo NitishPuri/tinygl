@@ -44,11 +44,16 @@ int main() {
 
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
+
     auto get_vertex = [&](auto vidx) { return model.vert(face[vidx][0]); };
-    auto get_tex = [&](auto vidx) {
-      auto tex = model.tex(face[vidx][1]);
-      return texture.get(int(tex.u * texture.get_width()), int((1.-tex.v) * texture.get_height()));
+    auto get_tex = [&](auto vidx) { return model.tex(face[vidx][1]); };
+
+    auto get_color = [&](auto vidx) {
+      auto tex = get_tex(vidx);
+      return texture.get(int(tex.u * texture.get_width()),
+                         int((1. - tex.v) * texture.get_height()));
     };
+
     Vec3f n = (get_vertex(2) - get_vertex(0)) ^ (get_vertex(1) - get_vertex(0));
     n.normalize();
 
@@ -62,9 +67,14 @@ int main() {
     triangle_color_interp(
         {map_to_screen(get_vertex(0)), map_to_screen(get_vertex(1)),
          map_to_screen(get_vertex(2))},
-        {get_tex(0), get_tex(1), get_tex(2)}, zbuffer_col, image_color);
+        {get_color(0), get_color(1), get_color(2)}, zbuffer_col, image_color);
 
     // Texture interpolation
+    triangle_tex_interp({map_to_screen(get_vertex(0)),
+                         map_to_screen(get_vertex(1)),
+                         map_to_screen(get_vertex(2))},
+                        {get_tex(0), get_tex(1), get_tex(2)}, texture,
+                        zbuffer_tex, image_tex);
   }
 
   image_flat.flip_vertically();
@@ -72,6 +82,9 @@ int main() {
 
   image_color.flip_vertically();
   image_color.write_tga_file(OUTFILE_COLOR_INTERP);
+
+  image_tex.flip_vertically();
+  image_tex.write_tga_file(OUTFILE_TEX_INTERP);
 
   return 0;
 }
