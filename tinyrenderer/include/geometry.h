@@ -1,111 +1,97 @@
 #pragma once
 
-#include <cassert>
 #include <cmath>
-#include <functional>
 #include <iostream>
-#include <numeric>
+#include <array>
+#include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////////
-// Vector
-template <typename T, size_t Size> struct Vec {
-  Vec(){};
-  Vec(const std::array<T, Size> &x) : data(std::move(x)) {}
+///////////////////////////////////////////////////////
 
-  Vec<T, Size> &operator=(const Vec<T, Size> &V) {
+template <class t> struct Vec2 {
+  Vec2() = default;
+  Vec2(t _u, t _v) : data{_u, _v} {}
+  Vec2<t> &operator=(const Vec2<t> &V) {
     if (this != &V) {
       data = V.data;
     }
     return *this;
   }
 
-  // inline Vec<t, Size> operate(const Vec<t, Size> &V,
-  //                            std::function<t, (t, t)> op) {
-  //  return std::inn
-  //}
+  inline Vec2<t> operator+(const Vec2<t> &V) const {
+    return Vec2<t>(x() + V.x(), y() + V.y());
+  }
+  inline Vec2<t> operator-(const Vec2<t> &V) const {
+    return Vec2<t>(x() - V.x(), y() - V.y());
+  }
+  inline Vec2<t> operator*(float f) const {
+    return Vec2<t>(t(x() * f), t(y() * f));
+  }
+  inline t x() const { return data[0]; }
+  inline t &x() { return data[0]; }
+  inline t y() const { return data[1]; }
+  inline t &y() { return data[1]; }
+  inline t operator[](int f) const { return data[f]; }
+  inline t &operator[](int f) { return data[f]; }
+  template <class> friend std::ostream &operator<<(std::ostream &s, Vec2<t> &v);
 
-  inline T operator[](int i) const { return data[i]; }
-  inline T &operator[](int i) { return data[i]; }
+private:
+  std::array<t, 2> data;
+};
 
-  inline Vec<T, Size> operator+(const Vec<T, Size> &V) const {
-    Vec<T, Size> ret;
-    for (auto i = 0; i < Size; i++) {
-      ret[i] = (data[i] + V[i]);
-    }
-    return ret;
+template <class t> struct Vec3 {
+  Vec3() = default;
+  Vec3(t _x, t _y, t _z) : data{_x, _y, _z} {}
+  inline Vec3<t> operator^(const Vec3<t> &v) const {
+    return Vec3<t>(y() * v.z() - z() * v.y(), z() * v.x() - x() * v.z(), x() * v.y() - y() * v.x());
   }
-  inline Vec<T, Size> operator-(const Vec<T, Size> &V) const {
-    Vec<T, Size> ret;
-    for (auto i = 0; i < Size; i++) {
-      ret[i] = (data[i] - V[i]);
-    }
-    return ret;
+  inline Vec3<t> operator+(const Vec3<t> &v) const {
+    return Vec3<t>(x() + v.x(), y() + v.y(), z() + v.z());
   }
-  inline Vec<T, Size> operator*(float f) const {
-    Vec<T, Size> ret;
-    for (auto i = 0; i < Size; i++) {
-      ret[i] = static_cast<T>(data[i] * f);
-    }
-    return ret;
+  inline Vec3<t> operator-(const Vec3<t> &v) const {
+    return Vec3<t>(x() - v.x(), y() - v.y(), z() - v.z());
   }
-  inline T operator*(const Vec<T, Size> &v) const {
-    T ret = 0;
-    for (auto i = 0; i < Size; i++) {
-      ret += data[i] * v[i];
-    }
-    return ret;
+  inline Vec3<t> operator*(float f) const {
+    return Vec3<t>(x() * f, y() * f, z() * f);
   }
-
-  float norm() const {
-    return std::sqrtf(
-        std::accumulate(std::begin(data), std::end(data), 0.0f,
-                        [](auto a, auto b) { return a + b * b; }));
+  inline t operator*(const Vec3<t> &v) const {
+    return x() * v.x() + y() * v.y() + z() * v.z();
   }
-  Vec<T, Size> &normalize(T l = 1) {
+  inline t x() const { return data[0]; }
+  inline t &x() { return data[0]; }
+  inline t y() const { return data[1]; }
+  inline t &y() { return data[1]; }
+  inline t z() const { return data[2]; }
+  inline t &z() { return data[2]; }
+  inline t operator[](int f) const { return data[f]; }
+  inline t &operator[](int f) { return data[f]; }
+  float norm() const { return std::sqrt(x() * x() + y() * y() + z() * z()); }
+  Vec3<t> &normalize(t l = 1) {
     *this = (*this) * (l / norm());
     return *this;
   }
-
-  template <typename T, size_t Size>
-  friend std::ostream &operator<<(std::ostream &s, Vec<T, Size> &v);
+  template <class> friend std::ostream &operator<<(std::ostream &s, Vec3<t> &v);
 
 private:
-  std::array<T, Size> data;
+  std::array<t, 3> data;
 };
 
-template <typename T> class Vec2 : public Vec<T, 2> {
-public:
-  Vec2() : Vec({0, 0}){};
-  Vec2(T x, T y) : Vec({x, y}){};
-  Vec2(const Vec<T, 2> &obj) : Vec(obj) {}
-};
-
-template <typename T> class Vec3 : public Vec<T, 3> {
-public:
-  Vec3() : Vec({0, 0, 0}){};
-  Vec3(T x, T y, T z) : Vec({x, y, z}){};  
-  Vec3(const Vec<T, 3> &obj) : Vec(obj) {}
-  inline Vec3<T> operator^(const Vec3<T> &v) const {
-    const auto &x = operator[](0), y = operator[](1), z = operator[](2);
-    const auto &x2 = v[0], y2 = v[1], z2 = v[2];
-    return {y * z2 - z * y2, z * x2 - x * z2, x * y2 - y * x2};
-  }
-};
-
-template <typename T> Vec3<T> cross(Vec3<T> lhs, Vec3<T> rhs) {
+template <typename t> Vec3<t> cross(Vec3<t> lhs, Vec3<t> rhs) {
   return lhs ^ rhs;
 }
 
-using Vec2f = Vec2<float>;
-using Vec2i = Vec2<int>;
-using Vec3f = Vec3<float>;
-using Vec3i = Vec3<int>;
+typedef Vec2<float> Vec2f;
+typedef Vec2<int> Vec2i;
+typedef Vec3<float> Vec3f;
+typedef Vec3<int> Vec3i;
 
-template <class t, size_t Size>
-std::ostream &operator<<(std::ostream &s, Vec<t, Size> &v) {
-  for (s << "(", int i = 0; i < Size; i++) {
-    s << v[i] << (i < (Size - 1)) ? ", " : ")\n";
-  }
+template <class t> std::ostream &operator<<(std::ostream &s, Vec2<t> &v) {
+  s << "(" << v.x() << ", " << v.y() << ")\n";
+  return s;
+}
+
+template <class t> std::ostream &operator<<(std::ostream &s, Vec3<t> &v) {
+  s << "(" << v.x() << ", " << v.y() << ", " << v.z() << ")\n";
   return s;
 }
 

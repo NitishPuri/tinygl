@@ -1,4 +1,5 @@
 #include "geometry.h"
+#include <cassert>
 
 Matrix::Matrix(int r, int c)
     : m(std::vector<std::vector<float>>(r, std::vector<float>(c, 0.f))),

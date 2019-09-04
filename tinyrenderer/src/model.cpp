@@ -22,14 +22,14 @@ Model::Model(const char *filename) : verts_(), faces_() {
         iss >> v[i];
       verts_.push_back(v);
     } else if (!line.compare(0, 2, "f ")) {
-      std::array<Vec3i, 3> f;
+      std::array<VertexInfo, 3> f;
       Vec3i tmp;
       //int itrash, idx, tidx;
       iss >> trash;
       int f_count = 0;
       while (iss >> tmp[0] >> trash >> tmp[1] >> trash >> tmp[2]) {
         // in wavefront obj all indices start at 1, not zero
-        f[f_count++] = tmp - Vec3i(1, 1, 1);
+        f[f_count++] = {tmp - Vec3i(1, 1, 1)};
       }
       faces_.push_back(f);
     } else if (!line.compare(0, 2, "vt")) {
@@ -48,7 +48,7 @@ int Model::nverts() const { return (int)verts_.size(); }
 
 int Model::nfaces() const { return (int)faces_.size(); }
 
-std::array<Vec3i, 3> Model::face(int idx) const { return faces_[idx]; }
+std::array<VertexInfo, 3> Model::face(int idx) const { return faces_[idx]; }
 
 Vec3f Model::vert(int i) const { return verts_[i]; }
 

@@ -1,13 +1,22 @@
 #pragma once
 
 #include "geometry.h"
-#include <vector>
 #include <array>
+#include <vector>
+
+struct VertexInfo {
+public:
+  VertexInfo() {}
+  VertexInfo(Vec3i v) : v_idx(v[0]), t_idx(v[1]), n_idx(v[2]) {}
+  int v_idx; // Vertex index
+  int t_idx; // Texture index
+  int n_idx; // Normal Index
+};
 
 class Model {
 private:
   std::vector<Vec3f> verts_;
-  std::vector<std::array<Vec3i, 3>> faces_;
+  std::vector<std::array<VertexInfo, 3>> faces_;
   std::vector<Vec2f> tex_coords_;
 
 public:
@@ -17,5 +26,5 @@ public:
   int nfaces() const;
   Vec3f vert(int i) const;
   Vec2f tex(int i) const;
-  std::array<Vec3i, 3> face(int idx) const;
+  std::array<VertexInfo, 3> face(int idx) const;
 };
