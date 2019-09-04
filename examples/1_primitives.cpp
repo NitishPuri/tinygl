@@ -4,16 +4,15 @@
 #include "utils.h"
 #include <string>
 
-constexpr auto MODEL_PATH =
-    "D:/tree/rendering/tinyrenderer/obj/african_head.obj";
-constexpr auto OUTFILE = "D:/tree/rendering/tinyrenderer/african_head_flat.tga";
+constexpr auto OUTFILE = "D:/tree/rendering/tinyrenderer/out/01_primitives.tga";
 
 int main() {
   constexpr auto width = 800;
   constexpr auto height = 800;
   TGAImage image(width, height, TGAImage::RGB);
-  // image.set(52, 41, Colors::Red);
-  //                         // corner of the image
+
+  // Color a pixel.
+  image.set(52, 41, Colors::Red);
 
   // triangle({Vec2i{10, 10}, Vec2i{150, 40}, Vec2i{600, 600}}, image,
   //         Colors::White);
@@ -26,7 +25,7 @@ int main() {
     line(Vec2i(10, 790), Vec2i(790, 790), image, Colors::White);
   }
 
-  //TGAImage render(width, 16, TGAImage::RGB);
+  // TGAImage render(width, 16, TGAImage::RGB);
   std::vector<int> ybuffer(width, std::numeric_limits<int>::min());
 
   TGAImage render(width, 1, TGAImage::RGB);
