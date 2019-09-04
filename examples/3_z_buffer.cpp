@@ -30,8 +30,8 @@ int main() {
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
 
-    auto get_vertex = [&](auto vidx) { return model.vert(face[vidx][0]); };
-    auto get_tex = [&](auto vidx) { return model.tex(face[vidx][1]); };
+    auto get_vertex = [&](auto vidx) { return model.vert(face[vidx].v_idx); };
+    auto get_tex = [&](auto vidx) { return model.tex(face[vidx].t_idx); };
 
     std::array<Vec2i, 3> vertices{map_to_screen(get_vertex(0)),
                                   map_to_screen(get_vertex(1)),

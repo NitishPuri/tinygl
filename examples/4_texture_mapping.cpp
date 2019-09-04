@@ -5,6 +5,8 @@
 #include <memory>
 #include <string>
 
+//#include <Windows.h>
+
 constexpr auto MODEL_PATH =
     "D:/tree/rendering/tinyrenderer/obj/african_head.obj";
 constexpr auto TEXTURE =
@@ -52,6 +54,10 @@ int main() {
   TGAImage texture;
   texture.read_tga_file(TEXTURE);
 
+  texture.write_tga_file(
+      "D:/tree/rendering/tinyrenderer/obj/out/african_head_diffuse_copy_u.tga",
+      false);
+
   Model model(MODEL_PATH);
 
   Vec3f light_dir{0, 0, -1};
@@ -65,9 +71,9 @@ int main() {
   Projection[3][2] = -1.f / camera[2];
 
   auto map_to_screen = [=](auto v) {
-    //int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
-    //int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
-    //return Vec3f{float(x), float(y), v[2]};
+    // int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
+    // int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
+    // return Vec3f{float(x), float(y), v[2]};
 
     return m2v(ViewPort * Projection * v2m(v));
   };
@@ -75,8 +81,8 @@ int main() {
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
 
-    auto get_vertex = [&](auto vidx) { return model.vert(face[vidx][0]); };
-    auto get_tex = [&](auto vidx) { return model.tex(face[vidx][1]); };
+    auto get_vertex = [&](auto vidx) { return model.vert(face[vidx].v_idx); };
+    auto get_tex = [&](auto vidx) { return model.tex(face[vidx].t_idx); };
 
     auto get_color = [&](auto vidx) {
       auto tex = get_tex(vidx);
