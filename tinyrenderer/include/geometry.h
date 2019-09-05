@@ -115,3 +115,9 @@ private:
   std::vector<std::vector<float>> m;
   int rows, cols;
 };
+
+namespace utils {
+float map(float val, float from_start, float from_end, float to_start,
+          float to_end);
+
+} // namespace utils

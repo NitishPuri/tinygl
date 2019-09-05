@@ -46,7 +46,7 @@ Matrix Matrix::transpose() const {
   return result;
 }
 
-Matrix Matrix::inverse() const{
+Matrix Matrix::inverse() const {
   assert(rows == cols);
   // augmenting the square matrix with the identity matrix of the same
   // dimensions a => [ai]
@@ -77,7 +77,6 @@ Matrix Matrix::inverse() const{
       float coeff = result[k][i];
       for (int j = 0; j < result.cols; j++) {
 
-
         result[k][j] -= result[i][j] * coeff;
       }
     }
@@ -101,3 +100,10 @@ std::ostream &operator<<(std::ostream &s, Matrix &m) {
   }
   return s;
 }
+
+float utils::map(float val, float from_start, float from_end, float to_start,
+                 float to_end) {
+  val = (val - from_start) / (from_end - from_start);
+  val = to_start + val * (to_end - to_start);
+  return val;
+};
