@@ -1,15 +1,15 @@
 #pragma once
 
+#include <array>
 #include <cmath>
 #include <iostream>
-#include <array>
 #include <vector>
 
 ////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 
 template <class t> struct Vec2 {
-  Vec2() = default;
+  Vec2() : data{0, 0} {};
   Vec2(t _u, t _v) : data{_u, _v} {}
   Vec2<t> &operator=(const Vec2<t> &V) {
     if (this != &V) {
@@ -40,10 +40,11 @@ private:
 };
 
 template <class t> struct Vec3 {
-  Vec3() = default;
+  Vec3() : data{0, 0, 0} {};
   Vec3(t _x, t _y, t _z) : data{_x, _y, _z} {}
   inline Vec3<t> operator^(const Vec3<t> &v) const {
-    return Vec3<t>(y() * v.z() - z() * v.y(), z() * v.x() - x() * v.z(), x() * v.y() - y() * v.x());
+    return Vec3<t>(y() * v.z() - z() * v.y(), z() * v.x() - x() * v.z(),
+                   x() * v.y() - y() * v.x());
   }
   inline Vec3<t> operator+(const Vec3<t> &v) const {
     return Vec3<t>(x() + v.x(), y() + v.y(), z() + v.z());
