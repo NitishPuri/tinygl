@@ -49,6 +49,21 @@ Matrix viewport(int x, int y, int w, int h) {
   return m;
 }
 
+Matrix lookat(Vec3f eye, Vec3f center, Vec3f up) {
+  Vec3f z = (eye - center).normalize();
+  Vec3f x = cross(up, z).normalize();
+  Vec3f y = cross(z, x).normalize();
+  Matrix Minv = Matrix::identity(4);
+  Matrix Tr = Matrix::identity(4);
+  for (int i = 0; i < 3; i++) {
+    Minv[0][i] = x[i];
+    Minv[1][i] = y[i];
+    Minv[2][i] = z[i];
+    Tr[i][3] = -center[i];
+  }
+  return Minv * Tr;
+}
+
 int main() {
   TGAImage image_flat(width, height, TGAImage::RGB);
   TGAImage image_goroud(width, height, TGAImage::RGB);
@@ -67,15 +82,23 @@ int main() {
                                std::numeric_limits<float>::min());
 
   Matrix Projection = Matrix::identity(4);
-  Matrix ViewPort =
-      viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
   Projection[3][2] = -1.f / camera[2];
 
+  Matrix ViewPort =
+      viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
+
+  Vec3f eye(5, 3, 10);
+  Vec3f center(0, 0, 0);
+  Vec3f up(0, 1, 0);
+  Matrix View = lookat(eye, center, up);
+
+  Matrix ViewportProjectionView = ViewPort * Projection * View;
+
   auto map_to_screen = [=](auto v) {
-    //int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
-    //int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
-    //return Vec3f{float(x), float(y), v[2]};
-    return m2v(ViewPort * Projection * v2m(v));
+    // int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
+    // int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
+    // return Vec3f{float(x), float(y), v[2]};
+    return m2v(ViewportProjectionView * v2m(v));
   };
 
   for (int f = 0; f < model.nfaces(); f++) {
@@ -83,7 +106,9 @@ int main() {
 
     auto get_vertex = [&](auto vidx) { return model.vert(face[vidx].v_idx); };
     auto get_tex = [&](auto vidx) { return model.tex(face[vidx].t_idx); };
-    auto get_norm = [&](auto vidx) { return model.normal(face[vidx].n_idx) * -1.f; };
+    auto get_norm = [&](auto vidx) {
+      return model.normal(face[vidx].n_idx) * -1.f;
+    };
 
     auto get_color = [&](auto vidx) {
       auto tex = get_tex(vidx);
@@ -109,18 +134,47 @@ int main() {
                                   map_to_screen(get_vertex(1)),
                                   map_to_screen(get_vertex(2))};
 
+    // auto color =
+    //    TGAColor(unsigned char(rand() % 255), unsigned char(rand() % 255),
+    //             unsigned char(rand() % 255), 255);
+
+    auto get_color_at_intensity = [](auto intensity) {
+      // return TGAColor(unsigned char(intensity * 255),
+      //                unsigned char(intensity * intensity  * 255),
+      //                unsigned char(intensity * 255),
+      //                255);
+
+      return TGAColor(
+          unsigned char(
+              ((sin(utils::map(intensity, 0, 1, 0, 6.28f)) + 1) / .5) * 255),
+          unsigned char((1 - intensity) * 255), unsigned char(intensity * 255),
+          255);
+    };
+
+    auto face_color = get_color_at_intensity(face_intensity);
+
     // Flat shading
-    auto color_flat = [face_intensity, &get_norm](auto) {
-      return TGAColor(char(face_intensity * 255.));
+    auto color_flat = [face_intensity, &get_norm, face_color](auto) {
+      // return TGAColor(char(face_intensity * 255.));
+      return face_color;
     };
 
     // Goroud shading
-    auto color_goroud = [v_intensity, &get_norm](auto bc_screen) {
+    auto color_goroud = [v_intensity, &get_color_at_intensity](auto bc_screen) {
       float intensity = 0.0f;
       for (int i = 0; i < 3; i++) {
         intensity += (v_intensity[i] * bc_screen[i]);
       }
-      return TGAColor(char(intensity * 255.));
+      //return TGAColor(char(intensity * 255.));
+      return get_color_at_intensity(intensity);
+
+      // TGAColor color(0, 0, 0, 0);
+      // for (int i = 0; i < 3; i++) {
+      //  color = color + (get_color_at_intensity(v_intensity[i]) *
+      //  bc_screen[i]);
+      //}
+
+      // return color;
     };
 
     triangle(vertices, zbuffer_1, image_flat, color_flat);
