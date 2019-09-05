@@ -16,6 +16,7 @@ public:
 class Model {
 private:
   std::vector<Vec3f> verts_;
+  std::vector<Vec3f> norms_;
   std::vector<std::array<VertexInfo, 3>> faces_;
   std::vector<Vec2f> tex_coords_;
 
@@ -26,5 +27,6 @@ public:
   int nfaces() const;
   Vec3f vert(int i) const;
   Vec2f tex(int i) const;
+  Vec3f normal(int i) const;
   std::array<VertexInfo, 3> face(int idx) const;
 };

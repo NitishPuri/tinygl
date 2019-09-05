@@ -37,6 +37,11 @@ Model::Model(const char *filename) : verts_(), faces_() {
       Vec2f uv;
       iss >> uv[0] >> uv[1];
       tex_coords_.emplace_back(uv);
+    } else if (!line.compare(0, 2, "vn")) {
+      iss >> trash >> trash;
+      Vec3f uv;
+      iss >> uv[0] >> uv[1] >> uv[2];
+      norms_.emplace_back(uv);
     }
   }
   std::cerr << "# v# " << verts_.size() << " f# " << faces_.size() << std::endl;
@@ -53,3 +58,5 @@ std::array<VertexInfo, 3> Model::face(int idx) const { return faces_[idx]; }
 Vec3f Model::vert(int i) const { return verts_[i]; }
 
 Vec2f Model::tex(int i) const { return tex_coords_[i]; }
+
+Vec3f Model::normal(int i) const { return norms_[i]; }
