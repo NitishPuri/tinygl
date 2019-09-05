@@ -1,7 +1,7 @@
 
 #include "model.h"
 #include "tgaimage.h"
-#include "utils.h"
+#include "tinygl.h"
 #include <memory>
 #include <string>
 

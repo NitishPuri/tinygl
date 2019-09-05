@@ -1,7 +1,7 @@
 
 #define CATCH_CONFIG_MAIN 
 #include <catch.hpp>
-#include <utils.h>
+#include <tinygl.h>
 
 TEST_CASE("Performance", "Lines") { 
   TGAImage image(800, 800, TGAImage::RGB);

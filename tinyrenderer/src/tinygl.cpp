@@ -1,21 +1,19 @@
-#pragma once
-#include "geometry.h"
-#include "tgaimage.h"
+#include "tinygl.h"
 
-#include <array>
-#include <vector>
-#include <functional>
+//#include <array>
+//#include <functional>
+//#include <vector>
 
-namespace Colors {
-constexpr TGAColor White(255, 255, 255, 255);
-constexpr TGAColor Red(255, 0, 0, 255);
-constexpr TGAColor Green(0, 255, 0, 255);
-constexpr TGAColor Blue(0, 0, 255, 255);
-
-TGAColor random() {
-  return TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
-}
-} // namespace Colors
+//namespace Colors {
+//constexpr TGAColor White(255, 255, 255, 255);
+//constexpr TGAColor Red(255, 0, 0, 255);
+//constexpr TGAColor Green(0, 255, 0, 255);
+//constexpr TGAColor Blue(0, 0, 255, 255);
+//
+//TGAColor random() {
+//  return TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
+//}
+//} // namespace Colors
 
 // Draw line segments.
 // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -78,6 +76,7 @@ void triangle_line_sweep(Vec2i a, Vec2i b, Vec2i c, TGAImage &image,
   }
 }
 
+
 template <typename vec>
 Vec3f barycentric(const std::array<vec, 3> &pts, vec P) {
   Vec3f s[2];
@@ -134,7 +133,7 @@ void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
 }
 
 void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
-                   TGAImage &image, std::function<TGAColor(Vec3f)> shader) {
+              TGAImage &image, std::function<TGAColor(Vec3f)> shader) {
   Vec2f bboxmin(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
   Vec2f bboxmax(-std::numeric_limits<float>::max(),
@@ -146,8 +145,8 @@ void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
       bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
     }
   }
-  //int P;
-  for (int x = int(bboxmin[0]+0.5f); x <= int(bboxmax[0]+0.5f); x++) {
+  // int P;
+  for (int x = int(bboxmin[0] + 0.5f); x <= int(bboxmax[0] + 0.5f); x++) {
     for (int y = int(bboxmin[1] + 0.5f); y <= int(bboxmax[1] + 0.5f); y++) {
       Vec3f bc_screen = barycentric(pts, Vec3f(float(x), float(y), 0.f));
       if (bc_screen[0] < 0 || bc_screen[1] < 0 || bc_screen[2] < 0)

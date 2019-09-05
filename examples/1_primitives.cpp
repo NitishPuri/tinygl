@@ -1,7 +1,7 @@
 
 #include "model.h"
 #include "tgaimage.h"
-#include "utils.h"
+#include "tinygl.h"
 #include <string>
 
 constexpr auto OUTFILE = "D:/tree/rendering/tinyrenderer/out/01_primitives.tga";
