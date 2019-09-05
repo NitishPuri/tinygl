@@ -10,7 +10,10 @@ constexpr auto MODEL_PATH =
 constexpr auto TEXTURE =
     "D:/tree/rendering/tinyrenderer/obj/african_head_diffuse.tga";
 
-constexpr auto OUTFILE_WIRE = "D:/tree/rendering/tinyrenderer/african_head.tga";
+constexpr auto OUTFILE =
+    "D:/tree/rendering/tinyrenderer/out/06_african_head_flat.tga";
+constexpr auto OUTFILE_2 =
+    "D:/tree/rendering/tinyrenderer/out/06_african_head_goroud.tga";
 
 constexpr int width = 800;
 constexpr int height = 800;
@@ -47,7 +50,8 @@ Matrix viewport(int x, int y, int w, int h) {
 }
 
 int main() {
-  TGAImage image(width, height, TGAImage::RGB);
+  TGAImage image_flat(width, height, TGAImage::RGB);
+  TGAImage image_goroud(width, height, TGAImage::RGB);
 
   TGAImage texture;
   texture.read_tga_file(TEXTURE);
@@ -57,7 +61,10 @@ int main() {
   Vec3f light_dir{0, 0, -1};
   Vec3f camera(0, 0, 3);
 
-  std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
+  std::vector<float> zbuffer_1(width * height,
+                               std::numeric_limits<float>::min());
+  std::vector<float> zbuffer_2(width * height,
+                               std::numeric_limits<float>::min());
 
   Matrix Projection = Matrix::identity(4);
   Matrix ViewPort =
@@ -68,7 +75,6 @@ int main() {
     //int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
     //int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
     //return Vec3f{float(x), float(y), v[2]};
-
     return m2v(ViewPort * Projection * v2m(v));
   };
 
@@ -77,6 +83,7 @@ int main() {
 
     auto get_vertex = [&](auto vidx) { return model.vert(face[vidx].v_idx); };
     auto get_tex = [&](auto vidx) { return model.tex(face[vidx].t_idx); };
+    auto get_norm = [&](auto vidx) { return model.normal(face[vidx].n_idx) * -1.f; };
 
     auto get_color = [&](auto vidx) {
       auto tex = get_tex(vidx);
@@ -85,12 +92,17 @@ int main() {
     };
 
     // light intensity
-    Vec3f n = Vec3f(get_vertex(2) - get_vertex(0)) ^
-              Vec3f(get_vertex(1) - get_vertex(0));
-    n.normalize();
-    float intensity = n * light_dir;
+    Vec3f face_normal = Vec3f(get_vertex(2) - get_vertex(0)) ^
+                        Vec3f(get_vertex(1) - get_vertex(0));
+    face_normal.normalize();
+    float face_intensity = face_normal * light_dir;
 
-    if (intensity < 0)
+    float v_intensity[3];
+    for (int i = 0; i < 3; i++) {
+      v_intensity[i] = get_norm(i) * light_dir;
+    }
+
+    if (face_intensity < 0)
       continue;
 
     std::array<Vec3f, 3> vertices{map_to_screen(get_vertex(0)),
@@ -98,35 +110,28 @@ int main() {
                                   map_to_screen(get_vertex(2))};
 
     // Flat shading
-    auto color_flat = [intensity](auto) {
+    auto color_flat = [face_intensity, &get_norm](auto) {
+      return TGAColor(char(face_intensity * 255.));
+    };
+
+    // Goroud shading
+    auto color_goroud = [v_intensity, &get_norm](auto bc_screen) {
+      float intensity = 0.0f;
+      for (int i = 0; i < 3; i++) {
+        intensity += (v_intensity[i] * bc_screen[i]);
+      }
       return TGAColor(char(intensity * 255.));
     };
 
-    // Color interpolation
-    auto color_interp = [&get_color](auto bc_screen) {
-      TGAColor color;
-      for (int i = 0; i < 3; i++) {
-        color = (color + (get_color(i) * bc_screen[i]));
-      }
-      return color;
-    };
-
-    // Texture interpolation
-    auto tex_interp = [&get_tex, &texture, intensity](auto bc_screen) {
-      Vec2f uv;
-      for (int i = 0; i < 3; i++) {
-        uv = (uv + (get_tex(i) * bc_screen[i]));
-      }
-      auto color = texture.get(int(uv[0] * texture.get_width()),
-                               int((1. - uv[1]) * texture.get_height()));
-
-      return color;
-    };
-    triangle(vertices, zbuffer, image, tex_interp);
+    triangle(vertices, zbuffer_1, image_flat, color_flat);
+    triangle(vertices, zbuffer_2, image_goroud, color_goroud);
   }
 
-  image.flip_vertically();
-  image.write_tga_file(OUTFILE_WIRE);
+  image_flat.flip_vertically();
+  image_flat.write_tga_file(OUTFILE);
+
+  image_goroud.flip_vertically();
+  image_goroud.write_tga_file(OUTFILE_2);
 
   return 0;
 }
