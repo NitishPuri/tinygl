@@ -5,77 +5,39 @@
 #include <memory>
 #include <string>
 
-//#include <Windows.h>
-
 constexpr auto MODEL_PATH =
     "D:/tree/rendering/tinyrenderer/obj/african_head.obj";
 constexpr auto TEXTURE =
     "D:/tree/rendering/tinyrenderer/obj/african_head_diffuse.tga";
 
-constexpr auto OUTFILE_WIRE = "D:/tree/rendering/tinyrenderer/african_head.tga";
+constexpr auto OUTFILE_TEX_1 =
+    "D:/tree/rendering/tinyrenderer/out/04_african_head_tex_1.tga";
+constexpr auto OUTFILE_TEX_2 =
+    "D:/tree/rendering/tinyrenderer/out/04_african_head_tex_2.tga";
 
 constexpr int width = 800;
 constexpr int height = 800;
-constexpr int depth = 255;
-
-// Model *model = NULL;
-// int *zbuffer = NULL;
-// Vec3f light_dir(0, 0, -1);
-// Vec3f camera(0, 0, 3);
-
-Vec3f m2v(Matrix m) {
-  return Vec3f(m[0][0] / m[3][0], m[1][0] / m[3][0], m[2][0] / m[3][0]);
-}
-
-Matrix v2m(Vec3f v) {
-  Matrix m(4, 1);
-  m[0][0] = v[0];
-  m[1][0] = v[1];
-  m[2][0] = v[2];
-  m[3][0] = 1.f;
-  return m;
-}
-
-Matrix viewport(int x, int y, int w, int h) {
-  Matrix m = Matrix::identity(4);
-  m[0][3] = x + w / 2.f;
-  m[1][3] = y + h / 2.f;
-  m[2][3] = depth / 2.f;
-
-  m[0][0] = w / 2.f;
-  m[1][1] = h / 2.f;
-  m[2][2] = depth / 2.f;
-  return m;
-}
 
 int main() {
-  TGAImage image(width, height, TGAImage::RGB);
+  TGAImage image_1(width, height, TGAImage::RGB);
+  TGAImage image_2(width, height, TGAImage::RGB);
 
   TGAImage texture;
   texture.read_tga_file(TEXTURE);
 
-  texture.write_tga_file(
-      "D:/tree/rendering/tinyrenderer/obj/out/african_head_diffuse_copy_u.tga",
-      false);
-
   Model model(MODEL_PATH);
 
   Vec3f light_dir{0, 0, -1};
-  Vec3f camera(0, 0, 3);
 
-  std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
-
-  Matrix Projection = Matrix::identity(4);
-  Matrix ViewPort =
-      viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
-  Projection[3][2] = -1.f / camera[2];
+  std::vector<float> zbuffer_1(width * height,
+                               std::numeric_limits<float>::min());
+  std::vector<float> zbuffer_2(width * height,
+                               std::numeric_limits<float>::min());
 
   auto map_to_screen = [=](auto v) {
-    // int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
-    // int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
-    // return Vec3f{float(x), float(y), v[2]};
-
-    return m2v(ViewPort * Projection * v2m(v));
+    int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
+    int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
+    return Vec3f{float(x), float(y), v[2]};
   };
 
   for (int f = 0; f < model.nfaces(); f++) {
@@ -116,6 +78,7 @@ int main() {
       }
       return color;
     };
+    triangle(vertices, zbuffer_1, image_1, color_interp);
 
     // Texture interpolation
     auto tex_interp = [&get_tex, &texture, intensity](auto bc_screen) {
@@ -128,11 +91,15 @@ int main() {
 
       return color;
     };
-    triangle(vertices, zbuffer, image, tex_interp);
+
+    triangle(vertices, zbuffer_2, image_2, tex_interp);
   }
 
-  image.flip_vertically();
-  image.write_tga_file(OUTFILE_WIRE);
+  image_1.flip_vertically();
+  image_1.write_tga_file(OUTFILE_TEX_1);
+
+  image_2.flip_vertically();
+  image_2.write_tga_file(OUTFILE_TEX_2);
 
   return 0;
 }

@@ -10,16 +10,11 @@ constexpr auto MODEL_PATH =
 constexpr auto TEXTURE =
     "D:/tree/rendering/tinyrenderer/obj/african_head_diffuse.tga";
 
-constexpr auto OUTFILE_WIRE = "D:/tree/rendering/tinyrenderer/african_head.tga";
+constexpr auto OUTFILE = "D:/tree/rendering/tinyrenderer/out/05_african_head_perspective.tga";
 
 constexpr int width = 800;
 constexpr int height = 800;
 constexpr int depth = 255;
-
-// Model *model = NULL;
-// int *zbuffer = NULL;
-// Vec3f light_dir(0, 0, -1);
-// Vec3f camera(0, 0, 3);
 
 Vec3f m2v(Matrix m) {
   return Vec3f(m[0][0] / m[3][0], m[1][0] / m[3][0], m[2][0] / m[3][0]);
@@ -76,7 +71,7 @@ int main() {
     const auto &face = model.face(f);
 
     auto get_vertex = [&](auto vidx) { return model.vert(face[vidx].v_idx); };
-    auto get_tex = [&](auto vidx) { return model.tex(face[vidx].v_idx); };
+    auto get_tex = [&](auto vidx) { return model.tex(face[vidx].t_idx); };
 
     auto get_color = [&](auto vidx) {
       auto tex = get_tex(vidx);
@@ -126,7 +121,7 @@ int main() {
   }
 
   image.flip_vertically();
-  image.write_tga_file(OUTFILE_WIRE);
+  image.write_tga_file(OUTFILE);
 
   return 0;
 }

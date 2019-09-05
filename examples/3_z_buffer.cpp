@@ -8,24 +8,25 @@
 constexpr auto MODEL_PATH =
     "D:/tree/rendering/tinyrenderer/obj/african_head.obj";
 
-constexpr auto OUTFILE_WIRE = "D:/tree/rendering/tinyrenderer/african_head_wireframe.tga";
-constexpr auto OUTFILE_FLAT =
-    "D:/tree/rendering/tinyrenderer/african_head_flat_without_z.tga";
+constexpr auto OUTFILE_Z =
+    "D:/tree/rendering/tinyrenderer/out/03_african_head_z_buffered.tga";
 
 constexpr int width = 800;
 constexpr int height = 800;
 
 int main() {
   TGAImage image(width, height, TGAImage::RGB);
-  TGAImage image_flat(width, height, TGAImage::RGB);
 
   Model model(MODEL_PATH);
 
   auto map_to_screen = [=](auto v) {
-    int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
-    int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
-    return Vec2i{x, y};
+    auto x = floor((v.x() + 1.f) * width / 2.f + .5f);
+    auto y = floor((v.y() + 1.f) * height / 2.f + .5f);
+    return Vec3f{x, y, v.z()};
   };
+
+  Vec3f light_dir{0, 0, -1};
+  std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
 
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
@@ -33,22 +34,26 @@ int main() {
     auto get_vertex = [&](auto vidx) { return model.vert(face[vidx].v_idx); };
     auto get_tex = [&](auto vidx) { return model.tex(face[vidx].t_idx); };
 
-    std::array<Vec2i, 3> vertices{map_to_screen(get_vertex(0)),
+    // light intensity
+    Vec3f n = (get_vertex(2) - get_vertex(0)) ^ (get_vertex(1) - get_vertex(0));
+    n.normalize();
+    float intensity = n * light_dir;
+
+    std::array<Vec3f, 3> vertices{map_to_screen(get_vertex(0)),
                                   map_to_screen(get_vertex(1)),
                                   map_to_screen(get_vertex(2))};
 
-    line(vertices[0], vertices[1], image, Colors::White);
-    line(vertices[1], vertices[2], image, Colors::White);
-    line(vertices[0], vertices[2], image, Colors::White);
 
-    triangle(vertices, image_flat, Colors::White);
+    // Flat shading
+    auto color_flat = [intensity](Vec3f) {
+      return TGAColor(char(intensity * 255.));
+    };
+
+    triangle(vertices, zbuffer, image, color_flat);
   }
 
   image.flip_vertically();
-  image.write_tga_file(OUTFILE_WIRE);
-
-  image_flat.flip_vertically();
-  image_flat.write_tga_file(OUTFILE_FLAT);
+  image.write_tga_file(OUTFILE_Z);
 
   return 0;
 }
