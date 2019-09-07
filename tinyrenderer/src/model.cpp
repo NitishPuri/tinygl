@@ -5,7 +5,7 @@
 #include <string>
 #include <vector>
 
-Model::Model(const char *filename) : verts_(), faces_() {
+Model::Model(const std::string filename) : verts_(), faces_() {
   std::ifstream in;
   in.open(filename, std::ifstream::in);
   if (in.fail())

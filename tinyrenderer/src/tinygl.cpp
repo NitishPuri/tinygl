@@ -1,19 +1,42 @@
 #include "tinygl.h"
 
-//#include <array>
-//#include <functional>
-//#include <vector>
+Matrix viewport(int x, int y, int w, int h, int depth) {
+  Matrix m = Matrix::identity(4);
+  m[0][3] = x + w / 2.f;
+  m[1][3] = y + h / 2.f;
+  m[2][3] = depth / 2.f;
 
-//namespace Colors {
-//constexpr TGAColor White(255, 255, 255, 255);
-//constexpr TGAColor Red(255, 0, 0, 255);
-//constexpr TGAColor Green(0, 255, 0, 255);
-//constexpr TGAColor Blue(0, 0, 255, 255);
-//
-//TGAColor random() {
-//  return TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
-//}
-//} // namespace Colors
+  m[0][0] = w / 2.f;
+  m[1][1] = h / 2.f;
+  m[2][2] = depth / 2.f;
+  return m;
+}
+
+Matrix lookat(Vec3f eye, Vec3f center, Vec3f up) {
+  Vec3f z = (eye - center).normalize();
+  Vec3f x = cross(up, z).normalize();
+  Vec3f y = cross(z, x).normalize();
+  Matrix Minv = Matrix::identity(4);
+  Matrix Tr = Matrix::identity(4);
+  for (int i = 0; i < 3; i++) {
+    Minv[0][i] = x[i];
+    Minv[1][i] = y[i];
+    Minv[2][i] = z[i];
+    Tr[i][3] = -center[i];
+  }
+  return Minv * Tr;
+}
+
+Matrix projection(float coeff) // coeff = -1/c
+{
+  Matrix P = Matrix::identity(4);
+  P[3][2] = -1.f / coeff;
+
+  return P;
+}
+
+
+
 
 // Draw line segments.
 // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -80,10 +103,11 @@ void triangle_line_sweep(Vec2i a, Vec2i b, Vec2i c, TGAImage &image,
 template <typename vec>
 Vec3f barycentric(const std::array<vec, 3> &pts, vec P) {
   Vec3f s[2];
+  //s[0] = 
   for (int i = 0; i <= 1; i++) {
-    s[i][0] = float(pts[2][i] - pts[0][i]);
-    s[i][1] = float(pts[1][i] - pts[0][i]);
-    s[i][2] = float(pts[0][i] - P[i]);
+    s[i][0] = float(pts[2][i] - pts[0][i]); // c - a
+    s[i][1] = float(pts[1][i] - pts[0][i]); // b - a
+    s[i][2] = float(pts[0][i] - P[i]);      // a - p
   }
   Vec3f u = cross(s[0], s[1]);
   if (std::abs(u[2]) > 1e-2) // dont forget that u[2] is integer. If it is zero
@@ -132,7 +156,7 @@ void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
   }
 }
 
-void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
+void triangle(const std::array<Vec3f, 3> &pts, std::vector<int> &zbuffer,
               TGAImage &image, std::function<TGAColor(Vec3f)> shader) {
   Vec2f bboxmin(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
@@ -155,10 +179,64 @@ void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
       for (int i = 0; i < 3; i++)
         z += pts[i][2] * bc_screen[i];
       auto zidx = x + y * image.get_width();
-      if (zbuffer[zidx] < z) {
-        zbuffer[zidx] = z;
+      if (zbuffer[zidx] < z) 
+      {
+        zbuffer[zidx] = int(z);
         image.set(x, y, shader(bc_screen));
       }
     }
   }
 }
+
+// void triangle_line_sweep(const std::array<Vec3f, 3> &pts, std::vector<float>
+// &zbuffer,
+//              TGAImage &image, std::function<TGAColor(Vec3f)> shader) {
+//  if (pts[0].y == pts[1].y && pts[0].y == pts[2].y)
+//    return; // i dont care about degenerate triangles
+//  if (pts[0].y > pts[1].y) {
+//    std::swap(pts[0], pts[1]);
+//    std::swap(ity0, ity1);
+//  }
+//  if (pts[0].y > pts[2].y) {
+//    std::swap(pts[0], pts[2]);
+//    std::swap(ity0, ity2);
+//  }
+//  if (pts[1].y > pts[2].y) {
+//    std::swap(pts[1], pts[2]);
+//    std::swap(ity1, ity2);
+//  }
+//
+//  int total_height = pts[2].y - pts[0].y;
+//  for (int i = 0; i < total_height; i++) {
+//    bool second_half = i > pts[1].y - pts[0].y || pts[1].y == pts[0].y;
+//    int segment_height = second_half ? pts[2].y - pts[1].y : pts[1].y -
+//    pts[0].y; float alpha = (float)i / total_height; float beta = (float)(i -
+//    (second_half ? pts[1].y - pts[0].y : 0)) /
+//                 segment_height; // be careful: with above conditions no
+//                                 // division by zero here
+//    Vec3i A = pts[0] + Vec3f(pts[2] - pts[0]) * alpha;
+//    Vec3i B =
+//        second_half ? pts[1] + Vec3f(pts[2] - pts[1]) * beta : pts[0] +
+//        Vec3f(pts[1] - pts[0]) * beta;
+//    float ityA = ity0 + (ity2 - ity0) * alpha;
+//    float ityB =
+//        second_half ? ity1 + (ity2 - ity1) * beta : ity0 + (ity1 - ity0) *
+//        beta;
+//    if (A.x > B.x) {
+//      std::swap(A, B);
+//      std::swap(ityA, ityB);
+//    }
+//    for (int j = A.x; j <= B.x; j++) {
+//      float phi = B.x == A.x ? 1. : (float)(j - A.x) / (B.x - A.x);
+//      Vec3i P = Vec3f(A) + Vec3f(B - A) * phi;
+//      float ityP = ityA + (ityB - ityA) * phi;
+//      int idx = P.x + P.y * width;
+//      if (P.x >= width || P.y >= height || P.x < 0 || P.y < 0)
+//        continue;
+//      if (zbuffer[idx] < P.z) {
+//        zbuffer[idx] = P.z;
+//        image.set(P.x, P.y, TGAColor(255, 255, 255) * ityP);
+//      }
+//    }
+//  }
+//}

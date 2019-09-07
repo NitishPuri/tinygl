@@ -68,6 +68,15 @@ struct TGAColor {
   }
 };
 
+namespace Colors {
+constexpr TGAColor White(255, 255, 255, 255);
+constexpr TGAColor Red(255, 0, 0, 255);
+constexpr TGAColor Green(0, 255, 0, 255);
+constexpr TGAColor Blue(0, 0, 255, 255);
+TGAColor random();
+
+} // namespace Colors
+
 class TGAImage {
 protected:
   unsigned char *data;
@@ -84,8 +93,8 @@ public:
   TGAImage();
   TGAImage(int w, int h, int bpp);
   TGAImage(const TGAImage &img);
-  bool read_tga_file(const char *filename);
-  bool write_tga_file(const char *filename, bool rle = true) const;
+  bool read_tga_file(const std::string filename);
+  bool write_tga_file(const std::string filename, bool rle = true) const;
   bool flip_horizontally();
   bool flip_vertically();
   bool scale(int w, int h);

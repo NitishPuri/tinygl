@@ -12,9 +12,13 @@ target_include_directories(Catch
 		"${PROJECT_SOURCE_DIR}/extern/catch/"
 )
 
+FILE(GLOB TINY_SOURCE ${PROJECT_SOURCE_DIR}/tinyrenderer/src/*.cpp)
+
 add_executable(unit_tests 
-                "${PROJECT_SOURCE_DIR}/tinyrenderer/src/tgaimage.cpp"
+                ${TINY_SOURCE}
                 "tests.cpp")
+
+target_link_libraries(${unit_tests} tinyrenderer)    
                 
 target_include_directories(unit_tests
 	PUBLIC

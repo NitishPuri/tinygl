@@ -6,16 +6,9 @@
 #include <functional>
 #include <vector>
 
-namespace Colors {
-constexpr TGAColor White(255, 255, 255, 255);
-constexpr TGAColor Red(255, 0, 0, 255);
-constexpr TGAColor Green(0, 255, 0, 255);
-constexpr TGAColor Blue(0, 0, 255, 255);
-
-TGAColor random() {
-  return TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
-}
-} // namespace Colors
+Matrix viewport(int x, int y, int w, int h, int depth);
+Matrix lookat(Vec3f eye, Vec3f center, Vec3f up);
+Matrix projection(float coeff = 0.f); // coeff = -1/c
 
 // Draw line segments.
 // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
@@ -31,5 +24,5 @@ void triangle(const std::array<Vec2i, 3> &pts, TGAImage &image, TGAColor color);
 void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
                  std::vector<int> &ybuffer);
 
-void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
+void triangle(const std::array<Vec3f, 3> &pts, std::vector<int> &zbuffer,
               TGAImage &image, std::function<TGAColor(Vec3f)> shader);

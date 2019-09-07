@@ -21,7 +21,7 @@ private:
   std::vector<Vec2f> tex_coords_;
 
 public:
-  Model(const char *filename);
+  Model(const std::string filename);
   ~Model();
   int nverts() const;
   int nfaces() const;

@@ -1,5 +1,6 @@
 #include "tgaimage.h"
 #include <fstream>
+#include <string>
 #include <iostream>
 #include <math.h>
 #include <string.h>
@@ -42,7 +43,7 @@ TGAImage &TGAImage::operator=(const TGAImage &img) {
   return *this;
 }
 
-bool TGAImage::read_tga_file(const char *filename) {
+bool TGAImage::read_tga_file(const std::string filename) {
   if (data)
     delete[] data;
   data = NULL;
@@ -149,7 +150,7 @@ bool TGAImage::load_rle_data(std::ifstream &in) {
   return true;
 }
 
-bool TGAImage::write_tga_file(const char *filename, bool rle) const {
+bool TGAImage::write_tga_file(const std::string filename, bool rle) const {
   unsigned char developer_area_ref[4] = {0, 0, 0, 0};
   unsigned char extension_area_ref[4] = {0, 0, 0, 0};
   unsigned char footer[18] = {'T', 'R', 'U', 'E', 'V', 'I', 'S', 'I', 'O',
@@ -349,4 +350,7 @@ bool TGAImage::scale(int w, int h) {
   width = w;
   height = h;
   return true;
+}
+TGAColor Colors::random() {
+  return TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
 }
