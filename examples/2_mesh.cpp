@@ -2,18 +2,12 @@
 #include "model.h"
 #include "tgaimage.h"
 #include "tinygl.h"
-#include <memory>
 #include <string>
 
-constexpr auto MODEL_PATH =
-    "D:/tree/rendering/tinyrenderer/obj/african_head.obj";
+#include "paths.h"
 
-constexpr auto OUTFILE_WIRE =
-    "D:/tree/rendering/tinyrenderer/out/02_african_head_wireframe.tga";
-constexpr auto OUTFILE_FLAT =
-    "D:/tree/rendering/tinyrenderer/out/02_african_head_flat.tga";
-constexpr auto OUTFILE_FLAT_LIGHT =
-    "D:/tree/rendering/tinyrenderer/out/02_african_head_flat_light.tga";
+const auto MODEL = MODELS[2];
+const auto PROJ_NO = "02_";
 
 constexpr int width = 800;
 constexpr int height = 800;
@@ -23,7 +17,7 @@ int main() {
   TGAImage image_flat(width, height, TGAImage::RGB);
   TGAImage image_light(width, height, TGAImage::RGB);
 
-  Model model(MODEL_PATH);
+  Model model(GetObjPath(MODEL));
 
   auto map_to_screen = [=](auto v) {
     int x = int(floor((v.x() + 1.f) * width / 2.f + .5f));
@@ -38,7 +32,7 @@ int main() {
 
     auto get_vertex = [&](auto vidx) { return model.vert(face[vidx].v_idx); };
 
-    Vec3f n = ( get_vertex(2) - get_vertex(0) ) ^ ( get_vertex(1) - get_vertex(0) );
+    Vec3f n = (get_vertex(2) - get_vertex(0)) ^ (get_vertex(1) - get_vertex(0));
     n.normalize();
 
     float intensity = n * light_dir;
@@ -60,13 +54,13 @@ int main() {
   }
 
   image.flip_vertically();
-  image.write_tga_file(OUTFILE_WIRE);
+  image.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "wireframe"));
 
   image_flat.flip_vertically();
-  image_flat.write_tga_file(OUTFILE_FLAT);
+  image_flat.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat"));
 
   image_light.flip_vertically();
-  image_light.write_tga_file(OUTFILE_FLAT_LIGHT);
+  image_light.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat_light"););
 
   return 0;
 }
