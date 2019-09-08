@@ -60,7 +60,7 @@ int main() {
   image_flat.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat"));
 
   image_light.flip_vertically();
-  image_light.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat_light"););
+  image_light.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat_light"));
 
   return 0;
 }

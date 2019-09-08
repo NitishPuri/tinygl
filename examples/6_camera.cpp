@@ -1,6 +1,6 @@
 
-#include <string>
 #include <ctime>
+#include <string>
 
 #include "model.h"
 #include "tgaimage.h"
@@ -8,34 +8,47 @@
 
 #include "paths.h"
 
-const auto MODEL = MODELS[2];
-const auto PROJ_NO = "04_";
+const auto MODEL = MODELS[0];
+const auto PROJ_NO = "06_";
 
 constexpr int width = 800;
 constexpr int height = 800;
 constexpr int depth = 255;
 
 int main() {
-  TGAImage image_1(width, height, TGAImage::RGB);
-  TGAImage image_2(width, height, TGAImage::RGB);
+  TGAImage image_flat(width, height, TGAImage::RGB);
+  TGAImage image_tex(width, height, TGAImage::RGB);
 
   TGAImage texture;
   texture.read_tga_file(GetDiffuseTexture(MODEL));
 
   Model model(GetObjPath(MODEL));
 
-  Vec3f light_dir{0, 0, -1};
 
   std::vector<float> zbuffer_1(width * height,
                                std::numeric_limits<float>::min());
   std::vector<float> zbuffer_2(width * height,
                                std::numeric_limits<float>::min());
 
+  //Vec3f eye(5, 2, 10);
+  Vec3f eye(0, 0, 10);
+  Vec3f center(0, 0, 0);
+  Vec3f up(0, 1, 0);
+  Vec3f view_dir = (eye - center).normalize() * -1;
+
+  Vec3f light_dir{0, 0.5, -1};
+  light_dir.normalize();
+
+  Matrix Projection = projection((eye - center).norm());
+  Matrix ViewPort =
+      viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4, depth);
+
+  Matrix ModelView = lookat(eye, center, up);
+
+  Matrix ViewportProjectionView = ViewPort * Projection * ModelView;
+
   auto map_to_screen = [=](auto v) {
-    auto x = floorf((v[0] + 1.f) * width / 2.f + .5f);
-    auto y = floorf((v[1] + 1.f) * height / 2.f + .5f);
-    auto z = floor((v.z() + 1.f) * depth / 2.f + .5f);
-    return Vec3f{x, y, z};
+    return utils::m2v(ViewportProjectionView * utils::v2m(v));
   };
 
   std::clock_t c_start = std::clock();
@@ -45,6 +58,9 @@ int main() {
 
     auto get_vertex = [&](auto vidx) { return model.vert(face[vidx].v_idx); };
     auto get_tex = [&](auto vidx) { return model.tex(face[vidx].t_idx); };
+    auto get_norm = [&](auto vidx) {
+      return model.normal(face[vidx].n_idx) * -1;
+    };
 
     auto get_color = [&](auto vidx) {
       auto tex = get_tex(vidx);
@@ -53,35 +69,31 @@ int main() {
     };
 
     // light intensity
-    Vec3f n = Vec3f(get_vertex(2) - get_vertex(0)) ^
-              Vec3f(get_vertex(1) - get_vertex(0));
-    n.normalize();
-    float intensity = n * light_dir;
+    Vec3f face_normal = Vec3f(get_vertex(2) - get_vertex(0)) ^
+                        Vec3f(get_vertex(1) - get_vertex(0));
 
-    if (intensity < 0)
-      continue;
+    //Vec3f face_normal = (get_norm(0) + get_norm(1) + get_norm(2)) * (1.f/ 3.f);
+
+    face_normal.normalize();
+    float face_intensity = face_normal * light_dir;
+
+    //if (view_dir * face_normal < 0)
+    //  continue;
 
     std::array<Vec3f, 3> vertices{map_to_screen(get_vertex(0)),
                                   map_to_screen(get_vertex(1)),
                                   map_to_screen(get_vertex(2))};
 
-    // Flat shading
-    auto color_flat = [intensity](auto) {
-      return TGAColor(char(intensity * 255.));
-    };
 
-    // Color interpolation
-    auto color_interp = [&get_color](auto bc_screen) {
-      TGAColor color;
-      for (int i = 0; i < 3; i++) {
-        color = (color + (get_color(i) * bc_screen[i]));
-      }
-      return color;
+    auto face_color = TGAColor(char(face_intensity * 255.));
+
+    // Flat shading
+    auto color_flat = [face_intensity, face_color](auto) {
+      return face_color;
     };
-    triangle(vertices, zbuffer_1, image_1, color_interp);
 
     // Texture interpolation
-    auto tex_interp = [&get_tex, &texture, intensity](auto bc_screen) {
+    auto tex_interp = [&get_tex, &texture, face_intensity](auto bc_screen) {
       Vec2f uv;
       for (int i = 0; i < 3; i++) {
         uv = (uv + (get_tex(i) * bc_screen[i]));
@@ -92,7 +104,9 @@ int main() {
       return color;
     };
 
-    triangle(vertices, zbuffer_2, image_2, tex_interp);
+    triangle(vertices, zbuffer_1, image_flat, color_flat);
+
+    triangle(vertices, zbuffer_2, image_tex, tex_interp);
   }
 
   std::clock_t c_end = std::clock();
@@ -100,15 +114,14 @@ int main() {
             << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << "ms\n";
 
 
-  image_1.flip_vertically();
-  image_1.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "tex_01"));
+  image_flat.flip_vertically();
+  image_flat.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat"));
 
-  image_2.flip_vertically();
-  image_2.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "tex_02"));
+  image_tex.flip_vertically();
+  image_tex.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "tex"));
 
   std::cout << "Press any key to exit...\n";
   getchar();
-
 
   return 0;
 }

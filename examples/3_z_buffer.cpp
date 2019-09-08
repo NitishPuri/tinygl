@@ -28,7 +28,7 @@ int main() {
   };
 
   Vec3f light_dir{0, 0, -1};
-  std::vector<int> zbuffer(width * height, std::numeric_limits<int>::min());
+  std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
 
   std::clock_t c_start = std::clock();
 

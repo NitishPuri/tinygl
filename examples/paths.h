@@ -17,5 +17,5 @@ std::string GetDiffuseTexture(std::string model) {
 
 std::string GetOutputPath(const std::string model, const std::string proj,
                           const std::string suffix) {
-  return BASE_DIR + "out/" + proj + model + "_" + suffix + ".tga";
+  return BASE_DIR + "out/" + model + "/" + proj + suffix + ".tga";
 }

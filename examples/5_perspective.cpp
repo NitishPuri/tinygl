@@ -1,71 +1,46 @@
 
+#include <ctime>
+#include <string>
+
 #include "model.h"
 #include "tgaimage.h"
 #include "tinygl.h"
-#include <memory>
-#include <string>
 
-constexpr auto MODEL_PATH =
-    "D:/tree/rendering/tinyrenderer/obj/african_head.obj";
-constexpr auto TEXTURE =
-    "D:/tree/rendering/tinyrenderer/obj/african_head_diffuse.tga";
+#include "paths.h"
 
-constexpr auto OUTFILE = "D:/tree/rendering/tinyrenderer/out/05_african_head_perspective.tga";
+const auto MODEL = MODELS[2];
+const auto PROJ_NO = "05_";
 
 constexpr int width = 800;
 constexpr int height = 800;
 constexpr int depth = 255;
 
-Vec3f m2v(Matrix m) {
-  return Vec3f(m[0][0] / m[3][0], m[1][0] / m[3][0], m[2][0] / m[3][0]);
-}
-
-Matrix v2m(Vec3f v) {
-  Matrix m(4, 1);
-  m[0][0] = v[0];
-  m[1][0] = v[1];
-  m[2][0] = v[2];
-  m[3][0] = 1.f;
-  return m;
-}
-
-Matrix viewport(int x, int y, int w, int h) {
-  Matrix m = Matrix::identity(4);
-  m[0][3] = x + w / 2.f;
-  m[1][3] = y + h / 2.f;
-  m[2][3] = depth / 2.f;
-
-  m[0][0] = w / 2.f;
-  m[1][1] = h / 2.f;
-  m[2][2] = depth / 2.f;
-  return m;
-}
-
 int main() {
   TGAImage image(width, height, TGAImage::RGB);
 
   TGAImage texture;
-  texture.read_tga_file(TEXTURE);
+  texture.read_tga_file(GetDiffuseTexture(MODEL));
 
-  Model model(MODEL_PATH);
+  Model model(GetObjPath(MODEL));
 
   Vec3f light_dir{0, 0, -1};
   Vec3f camera(0, 0, 3);
 
   std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
 
-  Matrix Projection = Matrix::identity(4);
+  Matrix Projection = projection(camera[2]);
   Matrix ViewPort =
-      viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4);
-  Projection[3][2] = -1.f / camera[2];
+      viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4, depth);
 
   auto map_to_screen = [=](auto v) {
-    //int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
-    //int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
-    //return Vec3f{float(x), float(y), v[2]};
+    // int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
+    // int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
+    // return Vec3f{float(x), float(y), v[2]};
 
-    return m2v(ViewPort * Projection * v2m(v));
+    return utils::m2v(ViewPort * Projection * utils::v2m(v));
   };
+
+  std::clock_t c_start = std::clock();
 
   for (int f = 0; f < model.nfaces(); f++) {
     const auto &face = model.face(f);
@@ -92,20 +67,6 @@ int main() {
                                   map_to_screen(get_vertex(1)),
                                   map_to_screen(get_vertex(2))};
 
-    // Flat shading
-    auto color_flat = [intensity](auto) {
-      return TGAColor(char(intensity * 255.));
-    };
-
-    // Color interpolation
-    auto color_interp = [&get_color](auto bc_screen) {
-      TGAColor color;
-      for (int i = 0; i < 3; i++) {
-        color = (color + (get_color(i) * bc_screen[i]));
-      }
-      return color;
-    };
-
     // Texture interpolation
     auto tex_interp = [&get_tex, &texture, intensity](auto bc_screen) {
       Vec2f uv;
@@ -120,8 +81,25 @@ int main() {
     triangle(vertices, zbuffer, image, tex_interp);
   }
 
+  std::clock_t c_end = std::clock();
+  std::cout << "Elapsed time for rendering :: "
+            << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << "ms\n";
+
+
   image.flip_vertically();
-  image.write_tga_file(OUTFILE);
+  image.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "perspective"));
+
+  TGAImage z_img(width, height, TGAImage::RGB);
+  for (int i = 0; i < width; i++) {
+    for (int j = 0; j < height; j++) {
+      if (zbuffer[i + j * width] > 0) {
+        z_img.set(i, j, TGAColor(unsigned char(zbuffer[i + j * width])));
+      }
+    }
+  }
+
+  z_img.flip_vertically();
+  z_img.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "z_buffer"), false);
 
   return 0;
 }
