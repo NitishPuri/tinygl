@@ -85,6 +85,7 @@ typedef Vec2<float> Vec2f;
 typedef Vec2<int> Vec2i;
 typedef Vec3<float> Vec3f;
 typedef Vec3<int> Vec3i;
+typedef std::array<float, 4> Vec4f;
 
 template <class t> std::ostream &operator<<(std::ostream &s, Vec2<t> &v) {
   s << "(" << v.x() << ", " << v.y() << ")\n";
@@ -119,5 +120,9 @@ private:
 namespace utils {
 float map(float val, float from_start, float from_end, float to_start,
           float to_end);
+
+Vec3f m2v(Matrix m);
+
+Matrix v2m(Vec3f v);
 
 } // namespace utils

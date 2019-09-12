@@ -101,9 +101,28 @@ std::ostream &operator<<(std::ostream &s, Matrix &m) {
   return s;
 }
 
-float utils::map(float val, float from_start, float from_end, float to_start,
+namespace utils {
+
+float map(float val, float from_start, float from_end, float to_start,
                  float to_end) {
   val = (val - from_start) / (from_end - from_start);
   val = to_start + val * (to_end - to_start);
   return val;
 };
+
+Vec3f m2v(Matrix m) {
+  return Vec3f(m[0][0] / m[3][0], m[1][0] / m[3][0], m[2][0] / m[3][0]);
+}
+
+Matrix v2m(Vec3f v) {
+  Matrix m(4, 1);
+  m[0][0] = v[0];
+  m[1][0] = v[1];
+  m[2][0] = v[2];
+  m[3][0] = 1.f;
+  return m;
+}
+
+
+}
+
