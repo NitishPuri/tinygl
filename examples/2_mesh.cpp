@@ -3,6 +3,7 @@
 #include "tgaimage.h"
 #include "tinygl.h"
 #include <string>
+#include <iostream>
 
 #include "paths.h"
 
@@ -16,6 +17,8 @@ int main() {
   TGAImage image(width, height, TGAImage::RGB);
   TGAImage image_flat(width, height, TGAImage::RGB);
   TGAImage image_light(width, height, TGAImage::RGB);
+
+  std::cout << ROOT_DIR << '\n';
 
   Model model(GetObjPath(MODEL));
 
@@ -61,6 +64,11 @@ int main() {
 
   image_light.flip_vertically();
   image_light.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat_light"));
+
+  auto f = GetOutputPath(MODEL, PROJ_NO, "wireframe");
+
+  system(f.c_str());
+  getchar();
 
   return 0;
 }
