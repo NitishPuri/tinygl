@@ -3,7 +3,7 @@
 #include <array>
 #include <string>
 
-const std::string BASE_DIR = "D:/tree/rendering/tinyrenderer/";
+const std::string BASE_DIR = ROOT_DIR;
 
 std::vector<std::string> MODELS = {"african_head", "boogie", "diablo3_pose"};
 
