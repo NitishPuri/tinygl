@@ -19,6 +19,7 @@ private:
   std::vector<Vec3f> norms_;
   std::vector<std::array<VertexInfo, 3>> faces_;
   std::vector<Vec2f> tex_coords_;
+  std::vector<Vec3f> face_norms;
 
 public:
   Model(const std::string filename);
@@ -28,5 +29,7 @@ public:
   Vec3f vert(int i) const;
   Vec2f tex(int i) const;
   Vec3f normal(int i) const;
+  Vec3f face_normal(int i) const;
   std::array<VertexInfo, 3> face(int idx) const;
+  void generateFaceNormals();
 };

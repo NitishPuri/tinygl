@@ -39,9 +39,10 @@ Model::Model(const std::string filename) : verts_(), faces_() {
       tex_coords_.emplace_back(uv);
     } else if (!line.compare(0, 2, "vn")) {
       iss >> trash >> trash;
-      Vec3f uv;
-      iss >> uv[0] >> uv[1] >> uv[2];
-      norms_.emplace_back(uv);
+      Vec3f norm;
+      iss >> norm[0] >> norm[1] >> norm[2];
+      norm.normalize();
+      norms_.emplace_back(norm);
     }
   }
   std::cerr << "# v# " << verts_.size() << " f# " << faces_.size() << std::endl;
@@ -60,3 +61,19 @@ Vec3f Model::vert(int i) const { return verts_[i]; }
 Vec2f Model::tex(int i) const { return tex_coords_[i]; }
 
 Vec3f Model::normal(int i) const { return norms_[i]; }
+
+Vec3f Model::face_normal(int i) const { return face_norms[i]; }
+
+void Model::generateFaceNormals()
+{
+  face_norms.clear();
+  face_norms.reserve(faces_.size());
+  for (const auto& face : faces_) {
+    auto get_vertex = [&](auto vidx) { return vert(face[vidx].v_idx); };
+
+    Vec3f face_normal = Vec3f(get_vertex(2) - get_vertex(0)) ^
+                        Vec3f(get_vertex(1) - get_vertex(0));
+    face_normal.normalize();
+    face_norms.push_back(face_normal);
+  }
+}
