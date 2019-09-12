@@ -156,7 +156,7 @@ void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
   }
 }
 
-void triangle(const std::array<Vec3f, 3> &pts, std::vector<int> &zbuffer,
+void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
               TGAImage &image, std::function<TGAColor(Vec3f)> shader) {
   Vec2f bboxmin(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
@@ -181,62 +181,45 @@ void triangle(const std::array<Vec3f, 3> &pts, std::vector<int> &zbuffer,
       auto zidx = x + y * image.get_width();
       if (zbuffer[zidx] < z) 
       {
-        zbuffer[zidx] = int(z);
+        zbuffer[zidx] = z;
         image.set(x, y, shader(bc_screen));
       }
     }
   }
 }
 
-// void triangle_line_sweep(const std::array<Vec3f, 3> &pts, std::vector<float>
-// &zbuffer,
-//              TGAImage &image, std::function<TGAColor(Vec3f)> shader) {
-//  if (pts[0].y == pts[1].y && pts[0].y == pts[2].y)
-//    return; // i dont care about degenerate triangles
-//  if (pts[0].y > pts[1].y) {
-//    std::swap(pts[0], pts[1]);
-//    std::swap(ity0, ity1);
-//  }
-//  if (pts[0].y > pts[2].y) {
-//    std::swap(pts[0], pts[2]);
-//    std::swap(ity0, ity2);
-//  }
-//  if (pts[1].y > pts[2].y) {
-//    std::swap(pts[1], pts[2]);
-//    std::swap(ity1, ity2);
-//  }
-//
-//  int total_height = pts[2].y - pts[0].y;
-//  for (int i = 0; i < total_height; i++) {
-//    bool second_half = i > pts[1].y - pts[0].y || pts[1].y == pts[0].y;
-//    int segment_height = second_half ? pts[2].y - pts[1].y : pts[1].y -
-//    pts[0].y; float alpha = (float)i / total_height; float beta = (float)(i -
-//    (second_half ? pts[1].y - pts[0].y : 0)) /
-//                 segment_height; // be careful: with above conditions no
-//                                 // division by zero here
-//    Vec3i A = pts[0] + Vec3f(pts[2] - pts[0]) * alpha;
-//    Vec3i B =
-//        second_half ? pts[1] + Vec3f(pts[2] - pts[1]) * beta : pts[0] +
-//        Vec3f(pts[1] - pts[0]) * beta;
-//    float ityA = ity0 + (ity2 - ity0) * alpha;
-//    float ityB =
-//        second_half ? ity1 + (ity2 - ity1) * beta : ity0 + (ity1 - ity0) *
-//        beta;
-//    if (A.x > B.x) {
-//      std::swap(A, B);
-//      std::swap(ityA, ityB);
-//    }
-//    for (int j = A.x; j <= B.x; j++) {
-//      float phi = B.x == A.x ? 1. : (float)(j - A.x) / (B.x - A.x);
-//      Vec3i P = Vec3f(A) + Vec3f(B - A) * phi;
-//      float ityP = ityA + (ityB - ityA) * phi;
-//      int idx = P.x + P.y * width;
-//      if (P.x >= width || P.y >= height || P.x < 0 || P.y < 0)
-//        continue;
-//      if (zbuffer[idx] < P.z) {
-//        zbuffer[idx] = P.z;
-//        image.set(P.x, P.y, TGAColor(255, 255, 255) * ityP);
-//      }
-//    }
-//  }
-//}
+void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
+              TGAImage &image, IShader& shader) {
+  Vec2f bboxmin(std::numeric_limits<float>::max(),
+                std::numeric_limits<float>::max());
+  Vec2f bboxmax(-std::numeric_limits<float>::max(),
+                -std::numeric_limits<float>::max());
+  Vec2f clamp(image.get_width() - 1.f, image.get_height() - 1.f);
+  for (int i = 0; i < 3; i++) {
+    for (int j = 0; j < 2; j++) {
+      bboxmin[j] = std::max(0.f, std::min(bboxmin[j], pts[i][j]));
+      bboxmax[j] = std::min(clamp[j], std::max(bboxmax[j], pts[i][j]));
+    }
+  }
+  // int P;
+  for (int x = int(bboxmin[0] + 0.5f); x <= int(bboxmax[0] + 0.5f); x++) {
+    for (int y = int(bboxmin[1] + 0.5f); y <= int(bboxmax[1] + 0.5f); y++) {
+      Vec3f bc_screen = barycentric(pts, Vec3f(float(x), float(y), 0.f));
+      if (bc_screen[0] < 0 || bc_screen[1] < 0 || bc_screen[2] < 0)
+        continue;
+        TGAColor color;
+      if (shader.fragment(bc_screen, color)) {
+        float z = 0;
+        for (int i = 0; i < 3; i++) {
+          z += pts[i][2] * bc_screen[i];
+        }          
+        auto zidx = x + y * image.get_width();
+        if (zbuffer[zidx] < z) 
+        {
+          zbuffer[zidx] = z;
+          image.set(x, y, color);
+        }
+      }
+    }
+  }
+}

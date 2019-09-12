@@ -24,5 +24,15 @@ void triangle(const std::array<Vec2i, 3> &pts, TGAImage &image, TGAColor color);
 void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
                  std::vector<int> &ybuffer);
 
-void triangle(const std::array<Vec3f, 3> &pts, std::vector<int> &zbuffer,
+void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
               TGAImage &image, std::function<TGAColor(Vec3f)> shader);
+
+struct IShader {
+  std::string _name;
+  virtual Vec3f vertex(int face_idx, int v_idx) = 0;
+  virtual bool fragment(Vec3f bc, TGAColor &color) = 0;
+  virtual ~IShader() = default;
+};
+
+void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
+              TGAImage &image, IShader& shader);
