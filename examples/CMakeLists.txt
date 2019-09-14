@@ -21,3 +21,9 @@ add_example(4_texture_mapping)
 add_example(5_perspective)
 add_example(6_camera)
 add_example(7_shading)
+
+add_compile_definitions(ROOT_DIR="${PROJECT_SOURCE_DIR}/")
+add_executable(tga_to_bmp "tga_to_bmp.cpp")
+target_link_libraries(tga_to_bmp tinygl)    
+
+
