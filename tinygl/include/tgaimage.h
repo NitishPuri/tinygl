@@ -68,15 +68,6 @@ struct TGAColor {
   }
 };
 
-namespace Colors {
-constexpr TGAColor White(255, 255, 255, 255);
-constexpr TGAColor Red(255, 0, 0, 255);
-constexpr TGAColor Green(0, 255, 0, 255);
-constexpr TGAColor Blue(0, 0, 255, 255);
-TGAColor random();
-
-} // namespace Colors
-
 class TGAImage {
 protected:
   unsigned char *data;

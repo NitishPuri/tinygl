@@ -2,6 +2,8 @@
 
 Image::Image(int width, int height) : _image(width, height) {}
 
+Image::Image(const std::string &filename) : _image(filename) {}
+
 void Image::set(int x, int y, Color color) { _image.set_pixel(x, y, color._color); }
 
 Color Image::get(int x, int y) const { return Color {_image.get_pixel(x, y)}; }
@@ -9,8 +11,10 @@ Color Image::get(int x, int y) const { return Color {_image.get_pixel(x, y)}; }
 int Image::get_width() const { return _image.width(); }
 int Image::get_height() const { return _image.height(); }
 
-void Image::write(const std::string &filename) {
-  _image.vertical_flip();
+void Image::write(const std::string &filename, bool flip) {
+  if (flip) {
+    _image.vertical_flip();
+  }  
   _image.save_image(filename);
 }
 

@@ -351,6 +351,3 @@ bool TGAImage::scale(int w, int h) {
   height = h;
   return true;
 }
-TGAColor Colors::random() {
-  return TGAColor(rand() % 255, rand() % 255, rand() % 255, 255);
-}
