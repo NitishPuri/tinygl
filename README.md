@@ -1,4 +1,4 @@
-# tinyrenderer
+# TinyGL
 A tiny software renderer using c++.
 
 

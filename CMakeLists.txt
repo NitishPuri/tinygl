@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.6)
 # list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake/Modules")
 #include(CTest)
 
-project(tinyrenderer)
+project(tinygl)
 
 add_definitions(/W4 /std:c++17)
 add_definitions(/WX)
@@ -12,7 +12,7 @@ add_definitions(/WX)
 message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
 message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
 
-add_subdirectory(tinyrenderer)
+add_subdirectory(tinygl)
 
 add_subdirectory(examples)
 
