@@ -116,13 +116,3 @@ private:
   std::vector<std::vector<float>> m;
   int rows, cols;
 };
-
-namespace utils {
-float map(float val, float from_start, float from_end, float to_start,
-          float to_end);
-
-Vec3f m2v(Matrix m);
-
-Matrix v2m(Vec3f v);
-
-} // namespace utils

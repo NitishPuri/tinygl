@@ -1,11 +1,11 @@
 
 
-include_directories(${PROJECT_SOURCE_DIR}/tinyrenderer/include)
+include_directories(${PROJECT_SOURCE_DIR}/tinygl/include)
 
 FILE(GLOB TINY_SOURCE src/*.cpp)
 
 add_library(
-    tinyrenderer
+    tinygl
         ${TINY_INCLUDE}
         ${TINY_SOURCE}
 )

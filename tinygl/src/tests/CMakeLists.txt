@@ -12,13 +12,13 @@ target_include_directories(Catch
 		"${PROJECT_SOURCE_DIR}/extern/catch/"
 )
 
-FILE(GLOB TINY_SOURCE ${PROJECT_SOURCE_DIR}/tinyrenderer/src/*.cpp)
+FILE(GLOB TINY_SOURCE ${PROJECT_SOURCE_DIR}/tinygl/src/*.cpp)
 
 add_executable(unit_tests 
                 ${TINY_SOURCE}
                 "tests.cpp")
 
-target_link_libraries(${unit_tests} tinyrenderer)    
+target_link_libraries(${unit_tests} tinygl)    
                 
 target_include_directories(unit_tests
 	PUBLIC
@@ -35,4 +35,4 @@ message("PARSE_CATCH_TESTS_VERBOSE is ${PARSE_CATCH_TESTS_VERBOSE}")
 ParseAndAddCatchTests(unit_tests)
 
 
-# add_test(test_tinyrenderer test_tinyrenderer)
+# add_test(test_tinygl test_tinygl)
