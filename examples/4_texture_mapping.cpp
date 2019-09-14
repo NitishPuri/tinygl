@@ -3,7 +3,6 @@
 #include <ctime>
 
 #include "model.h"
-#include "tgaimage.h"
 #include "tinygl.h"
 
 #include "paths.h"
@@ -16,11 +15,10 @@ constexpr int height = 800;
 constexpr int depth = 255;
 
 int main() {
-  TGAImage image_1(width, height, TGAImage::RGB);
-  TGAImage image_2(width, height, TGAImage::RGB);
+  Image image_1(width, height);
+  Image image_2(width, height);
 
-  TGAImage texture;
-  texture.read_tga_file(GetDiffuseTexture(MODEL));
+  Image texture(GetDiffuseTexture(MODEL));
 
   Model model(GetObjPath(MODEL));
 
@@ -67,12 +65,12 @@ int main() {
 
     // Flat shading
     auto color_flat = [intensity](auto) {
-      return TGAColor(char(intensity * 255.));
+      return Color(char(intensity * 255.));
     };
 
     // Color interpolation
     auto color_interp = [&get_color](auto bc_screen) {
-      TGAColor color;
+      Color color;
       for (int i = 0; i < 3; i++) {
         color = (color + (get_color(i) * bc_screen[i]));
       }
@@ -100,11 +98,9 @@ int main() {
             << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << "ms\n";
 
 
-  image_1.flip_vertically();
-  image_1.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "tex_01"));
+  image_1.write(GetOutputPath(MODEL, PROJ_NO, "tex_01"));
 
-  image_2.flip_vertically();
-  image_2.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "tex_02"));
+  image_2.write(GetOutputPath(MODEL, PROJ_NO, "tex_02"));
 
   std::cout << "Press any key to exit...\n";
   getchar();

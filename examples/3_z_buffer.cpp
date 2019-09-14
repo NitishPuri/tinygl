@@ -1,14 +1,12 @@
 
 #include "model.h"
-#include "tgaimage.h"
 #include "tinygl.h"
-#include <memory>
 #include <string>
 #include <ctime>
 
 #include "paths.h"
 
-const auto MODEL = MODELS[2];
+const auto MODEL = MODELS[1];
 const auto PROJ_NO = "03_";
 
 constexpr int width = 800;
@@ -16,7 +14,7 @@ constexpr int height = 800;
 constexpr int depth = 255;
 
 int main() {
-  TGAImage image(width, height, TGAImage::RGB);
+  Image image(width, height);
 
   Model model(GetObjPath(MODEL));
 
@@ -52,7 +50,7 @@ int main() {
 
     // Flat shading
     auto color_flat = [intensity](Vec3f) {
-      return TGAColor(char(intensity * 255.));
+      return Color(char(intensity * 255.));
       // return Colors::White;
     };
 
@@ -63,20 +61,18 @@ int main() {
   std::cout << "Elapsed time for rendering :: "
             << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << "ms\n";
 
-  image.flip_vertically();
-  image.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "z_buffered"));
+  image.write(GetOutputPath(MODEL, PROJ_NO, "z_buffered"));
 
-  TGAImage z_img(width, height, TGAImage::RGB);
+  Image z_img(width, height);
   for (int i = 0; i < width; i++) {
     for (int j = 0; j < height; j++) {
       if (zbuffer[i + j * width] > 0) {
-        z_img.set(i, j, TGAColor(unsigned char(zbuffer[i + j * width])));
+        z_img.set(i, j, Color(unsigned char(zbuffer[i + j * width])));
       }
     }
   }
 
-  z_img.flip_vertically();
-  z_img.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "z_buffer"), false);
+  z_img.write(GetOutputPath(MODEL, PROJ_NO, "z_buffer"));
 
   std::cout << "Press any key to exit...\n";
   getchar();

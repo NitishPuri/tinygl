@@ -1,15 +1,15 @@
 
 #include "model.h"
-#include "tgaimage.h"
 #include "tinygl.h"
 #include <string>
 
-constexpr auto OUTFILE = "D:/tree/rendering/tinyrenderer/out/01_primitives.tga";
+const std::string ROOT = ROOT_DIR;
+const std::string OUTFILE = ROOT + "out/1_primitives.bmp";
 
 int main() {
   constexpr auto width = 800;
   constexpr auto height = 800;
-  TGAImage image(width, height, TGAImage::RGB);
+  Image image(width, height);
 
   // Color a pixel.
   image.set(52, 41, Colors::Red);
@@ -25,10 +25,9 @@ int main() {
     line(Vec2i(10, 790), Vec2i(790, 790), image, Colors::White);
   }
 
-  // TGAImage render(width, 16, TGAImage::RGB);
   std::vector<int> ybuffer(width, std::numeric_limits<int>::min());
 
-  TGAImage render(width, 1, TGAImage::RGB);
+  Image render(width, 1);
   rasterize2D(Vec2i(20, 34), Vec2i(744, 400), render, Colors::Red, ybuffer);
   rasterize2D(Vec2i(120, 434), Vec2i(444, 400), render, Colors::Green, ybuffer);
   rasterize2D(Vec2i(330, 463), Vec2i(594, 200), render, Colors::Blue, ybuffer);
@@ -38,7 +37,6 @@ int main() {
     image.set(i, 790, render.get(i, 0));
   }
 
-  image.flip_vertically(); // i want to have the origin at the left bottom
-  image.write_tga_file(OUTFILE);
+  image.write(OUTFILE);
   return 0;
 }

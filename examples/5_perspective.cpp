@@ -3,7 +3,6 @@
 #include <string>
 
 #include "model.h"
-#include "tgaimage.h"
 #include "tinygl.h"
 
 #include "paths.h"
@@ -16,10 +15,9 @@ constexpr int height = 800;
 constexpr int depth = 255;
 
 int main() {
-  TGAImage image(width, height, TGAImage::RGB);
+  Image image(width, height);
 
-  TGAImage texture;
-  texture.read_tga_file(GetDiffuseTexture(MODEL));
+  Image texture(GetDiffuseTexture(MODEL));
 
   Model model(GetObjPath(MODEL));
 
@@ -29,15 +27,19 @@ int main() {
   std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
 
   Matrix Projection = projection(camera[2]);
+  //Matrix ViewPort =
+  //    viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4, depth);
   Matrix ViewPort =
-      viewport(width / 8, height / 8, width * 3 / 4, height * 3 / 4, depth);
+      viewport(0, 0, width , height , depth);
+
+  Matrix ViewProjection = ViewPort * Projection;
 
   auto map_to_screen = [=](auto v) {
     // int x = int(floorf((v[0] + 1.f) * width / 2.f + .5f));
     // int y = int(floorf((v[1] + 1.f) * height / 2.f + .5f));
     // return Vec3f{float(x), float(y), v[2]};
 
-    return utils::m2v(ViewPort * Projection * utils::v2m(v));
+    return utils::m2v(ViewProjection * utils::v2m(v));
   };
 
   std::clock_t c_start = std::clock();
@@ -86,20 +88,18 @@ int main() {
             << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << "ms\n";
 
 
-  image.flip_vertically();
-  image.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "perspective"));
+  image.write(GetOutputPath(MODEL, PROJ_NO, "perspective"));
 
-  TGAImage z_img(width, height, TGAImage::RGB);
+  Image z_img(width, height);
   for (int i = 0; i < width; i++) {
     for (int j = 0; j < height; j++) {
       if (zbuffer[i + j * width] > 0) {
-        z_img.set(i, j, TGAColor(unsigned char(zbuffer[i + j * width])));
+        z_img.set(i, j, Color(unsigned char(zbuffer[i + j * width])));
       }
     }
   }
 
-  z_img.flip_vertically();
-  z_img.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "z_buffer"), false);
+  z_img.write(GetOutputPath(MODEL, PROJ_NO, "z_buffer"));
 
   return 0;
 }

@@ -1,30 +1,28 @@
 
 #include "model.h"
-#include "tgaimage.h"
 #include "tinygl.h"
 #include <string>
 #include <iostream>
 
 #include "paths.h"
 
-const auto MODEL = MODELS[2];
+const auto MODEL = MODELS[1];
 const auto PROJ_NO = "02_";
 
 constexpr int width = 800;
 constexpr int height = 800;
+constexpr int padding = 10;
 
 int main() {
-  TGAImage image(width, height, TGAImage::RGB);
-  TGAImage image_flat(width, height, TGAImage::RGB);
-  TGAImage image_light(width, height, TGAImage::RGB);
-
-  std::cout << ROOT_DIR << '\n';
+  Image image(width, height);
+  Image image_flat(width, height);
+  Image image_light(width, height);
 
   Model model(GetObjPath(MODEL));
 
   auto map_to_screen = [=](auto v) {
-    int x = int(floor((v.x() + 1.f) * width / 2.f + .5f));
-    int y = int(floor((v.y() + 1.f) * height / 2.f + .5f));
+    int x = int(floor( padding/2 + (v.x() + 1.f) * (width - padding) / 2.f + .5f));
+    int y = int(floor( padding/2 + (v.y() + 1.f) * (height - padding) / 2.f + .5f));
     return Vec2i{x, y};
   };
 
@@ -53,17 +51,14 @@ int main() {
     triangle(vertices, image_flat, Colors::White);
 
     // flat shading with light
-    triangle(vertices, image_light, TGAColor(char(intensity * 255)));
+    triangle(vertices, image_light, Color(char(intensity * 255)));
   }
 
-  image.flip_vertically();
-  image.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "wireframe"));
+  image.write(GetOutputPath(MODEL, PROJ_NO, "wireframe"));
 
-  image_flat.flip_vertically();
-  image_flat.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat"));
+  image_flat.write(GetOutputPath(MODEL, PROJ_NO, "flat"));
 
-  image_light.flip_vertically();
-  image_light.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat_light"));
+  image_light.write(GetOutputPath(MODEL, PROJ_NO, "flat_light"));
 
   auto f = GetOutputPath(MODEL, PROJ_NO, "wireframe");
 

@@ -3,12 +3,11 @@
 #include <string>
 
 #include "model.h"
-#include "tgaimage.h"
 #include "tinygl.h"
 
 #include "paths.h"
 
-const auto MODEL = MODELS[2];
+const auto MODEL = MODELS[0];
 const auto PROJ_NO = "07_";
 
 constexpr int width = 800;
@@ -20,14 +19,14 @@ struct NoShader : IShader {
   Model *model;
 
   // uniform variables
-  TGAColor u_color;
+  Color u_color;
   Matrix u_mvp; // model view projection matrix
 
   Vec3f vertex(int face_idx, int v_idx) override {
     auto v = model->vert(model->face(face_idx)[v_idx].v_idx);
     return utils::m2v(u_mvp * utils::v2m(v));
   }
-  bool fragment(Vec3f, TGAColor &color) override {
+  bool fragment(Vec3f, Color &color) override {
     color = u_color;
     return true;
   }
@@ -43,7 +42,7 @@ struct FlatShader : IShader {
 
   // uniform variables
   Vec3f u_lightDir;
-  TGAColor u_color;
+  Color u_color;
   Matrix u_mvp; // model view projection matrix
 
   Vec3f vertex(int face_idx, int v_idx) override {
@@ -53,7 +52,7 @@ struct FlatShader : IShader {
     v_intensity = n * u_lightDir;
     return utils::m2v(u_mvp * utils::v2m(v));
   }
-  bool fragment(Vec3f, TGAColor &color) override {
+  bool fragment(Vec3f, Color &color) override {
     // auto intensity = (u_lightDir[0] + u_lightDir[1] + u_lightDir[2]) / 3.f;
     color = u_color * v_intensity;
     return true;
@@ -70,7 +69,7 @@ struct GouraudShader : IShader {
 
   // uniform variables
   Vec3f u_lightDir;
-  TGAColor u_color;
+  Color u_color;
   Matrix u_mvp; // model view projection matrix
 
   Vec3f vertex(int face_idx, int v_idx) override {
@@ -80,7 +79,7 @@ struct GouraudShader : IShader {
     v_intensity[v_idx] = n * u_lightDir * -1.f;
     return utils::m2v(u_mvp * utils::v2m(v));
   }
-  bool fragment(Vec3f bc, TGAColor &color) override {
+  bool fragment(Vec3f bc, Color &color) override {
     auto intensity = v_intensity * bc;
     color = u_color * intensity;
     return true;
@@ -97,7 +96,7 @@ struct DeepPurpleFlatShader : IShader {
 
   // uniform variables
   Vec3f u_lightDir;
-  // TGAColor u_color;
+  // Color u_color;
   Matrix u_mvp; // model view projection matrix
 
   Vec3f vertex(int face_idx, int v_idx) override {
@@ -107,11 +106,11 @@ struct DeepPurpleFlatShader : IShader {
     v_intensity = n * u_lightDir;
     return utils::m2v(u_mvp * utils::v2m(v));
   }
-  bool fragment(Vec3f, TGAColor &color) override {
-    color = TGAColor(unsigned char(v_intensity * 255),
+  bool fragment(Vec3f, Color &color) override {
+    color = Color(unsigned char(v_intensity * 255),
                      unsigned char((1 - v_intensity) * v_intensity * 255),
-                     unsigned char(v_intensity * 255), 255);
-    // color = TGAColor(
+                     unsigned char(v_intensity * 255));
+    // color = Color(
     //    unsigned char(
     //        ((sin(utils::map(v_intensity, 0, 1, 0, 6.28f)) + 1) / .5) * 255),
     //    unsigned char((1 - v_intensity) * 255),
@@ -130,7 +129,7 @@ struct DiffuseTextureShader : IShader {
 
   // uniform variables
   Vec3f u_lightDir;
-  const TGAImage *u_diffuse;
+  const Image *u_diffuse;
   Matrix u_mvp; // model view projection matrix
 
   Vec3f vertex(int face_idx, int v_idx) override {
@@ -139,7 +138,7 @@ struct DiffuseTextureShader : IShader {
     uv[v_idx] = model->tex(f[v_idx].t_idx);
     return utils::m2v(u_mvp * utils::v2m(v));
   }
-  bool fragment(Vec3f bc, TGAColor &color) override {
+  bool fragment(Vec3f bc, Color &color) override {
     Vec2f t;
     for (int i = 0; i < 3; i ++) {
       t = t + (uv[i] * bc[i]);
@@ -151,9 +150,7 @@ struct DiffuseTextureShader : IShader {
 };
 
 int main() {
-  TGAImage texture;
-  texture.read_tga_file(GetDiffuseTexture(MODEL));
-
+  Image texture(GetDiffuseTexture(MODEL));
   Model model(GetObjPath(MODEL));
 
   Vec3f eye(0, 0, 100);
@@ -181,7 +178,7 @@ int main() {
     shader->model = &model;
     shader->u_color = Colors::White;
     shader->u_mvp = ViewportProjectionView;
-    // shaders.emplace_back(shader.release());
+     shaders.emplace_back(shader.release());
   }
 
   {
@@ -190,9 +187,9 @@ int main() {
     shader->model = &model;
     model.generateFaceNormals();
     shader->u_lightDir = Vec3f(0, 0, -1).normalize();
-    shader->u_color = TGAColor(200, 100, 150, 255);
+    shader->u_color = Color(200, 100, 150);
     shader->u_mvp = ViewportProjectionView;
-    // shaders.emplace_back(shader.release());
+     shaders.emplace_back(shader.release());
   }
 
   {
@@ -202,7 +199,7 @@ int main() {
     shader->u_lightDir = Vec3f(0, 0, -1).normalize();
     shader->u_color = Colors::White;
     shader->u_mvp = ViewportProjectionView;
-    // shaders.emplace_back(shader.release());
+     shaders.emplace_back(shader.release());
   }
 
   {
@@ -224,14 +221,8 @@ int main() {
     shaders.emplace_back(shader.release());
   }
 
-  std::vector<TGAImage> frame_buffers(shaders.size(),
-                                      TGAImage(width, height, TGAImage::RGB));
-
-  std::vector<std::vector<float>> z_buffers(
-      shaders.size(), {width * height, std::numeric_limits<float>::min()});
-
   for (auto &shader : shaders) {
-    TGAImage image(width, height, TGAImage::RGB);
+    Image image(width, height);
     std::vector<float> zbuffer(width * height,
                                std::numeric_limits<float>::min());
 
@@ -249,8 +240,7 @@ int main() {
               << ") :: " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC
               << "ms\n";
 
-    image.flip_vertically();
-    image.write_tga_file(GetOutputPath(MODEL, PROJ_NO, shader->_name));
+    image.write(GetOutputPath(MODEL, PROJ_NO, shader->_name));
 
     system(GetOutputPath(MODEL, PROJ_NO, shader->_name).c_str());
   }

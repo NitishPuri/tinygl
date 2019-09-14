@@ -3,12 +3,11 @@
 #include <string>
 
 #include "model.h"
-#include "tgaimage.h"
 #include "tinygl.h"
 
 #include "paths.h"
 
-const auto MODEL = MODELS[0];
+const auto MODEL = MODELS[2];
 const auto PROJ_NO = "06_";
 
 constexpr int width = 800;
@@ -16,11 +15,10 @@ constexpr int height = 800;
 constexpr int depth = 255;
 
 int main() {
-  TGAImage image_flat(width, height, TGAImage::RGB);
-  TGAImage image_tex(width, height, TGAImage::RGB);
+  Image image_flat(width, height);
+  Image image_tex(width, height);
 
-  TGAImage texture;
-  texture.read_tga_file(GetDiffuseTexture(MODEL));
+  Image texture(GetDiffuseTexture(MODEL));
 
   Model model(GetObjPath(MODEL));
 
@@ -31,7 +29,7 @@ int main() {
                                std::numeric_limits<float>::min());
 
   //Vec3f eye(5, 2, 10);
-  Vec3f eye(0, 0, 10);
+  Vec3f eye(10, 0, 1000);
   Vec3f center(0, 0, 0);
   Vec3f up(0, 1, 0);
   Vec3f view_dir = (eye - center).normalize() * -1;
@@ -85,7 +83,7 @@ int main() {
                                   map_to_screen(get_vertex(2))};
 
 
-    auto face_color = TGAColor(char(face_intensity * 255.));
+    auto face_color = Color(char(face_intensity * 255.));
 
     // Flat shading
     auto color_flat = [face_intensity, face_color](auto) {
@@ -114,11 +112,9 @@ int main() {
             << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << "ms\n";
 
 
-  image_flat.flip_vertically();
-  image_flat.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "flat"));
+  image_flat.write(GetOutputPath(MODEL, PROJ_NO, "flat"));
 
-  image_tex.flip_vertically();
-  image_tex.write_tga_file(GetOutputPath(MODEL, PROJ_NO, "tex"));
+  image_tex.write(GetOutputPath(MODEL, PROJ_NO, "tex"));
 
   std::cout << "Press any key to exit...\n";
   getchar();
