@@ -41,7 +41,7 @@ Matrix projection(float coeff) // coeff = -1/c
 // Draw line segments.
 // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 //
-void line(Vec2i p, Vec2i q, TGAImage &image, const TGAColor &color) {
+void line(Vec2i p, Vec2i q, Image &image, const Color &color) {
   auto steep = false;
   // transpose in case the line is steep.
   if (std::abs(p[0] - q[0]) < std::abs(p[1] - q[1])) {
@@ -73,8 +73,8 @@ void line(Vec2i p, Vec2i q, TGAImage &image, const TGAColor &color) {
 }
 
 // Rasterize triangle using line sweep.
-void triangle_line_sweep(Vec2i a, Vec2i b, Vec2i c, TGAImage &image,
-                         const TGAColor &color) {
+void triangle_line_sweep(Vec2i a, Vec2i b, Vec2i c, Image &image,
+                         const Color &color) {
   if (a[1] > b[1])
     std::swap(a, b);
   if (a[1] > c[1])
@@ -118,8 +118,8 @@ Vec3f barycentric(const std::array<vec, 3> &pts, vec P) {
                           // be thrown away by the rasterizator
 }
 
-void triangle(const std::array<Vec2i, 3> &pts, TGAImage &image,
-              TGAColor color) {
+void triangle(const std::array<Vec2i, 3> &pts, Image &image,
+              Color color) {
   Vec2i bboxmin(image.get_width() - 1, image.get_height() - 1);
   Vec2i bboxmax(0, 0);
   Vec2i clamp(image.get_width() - 1, image.get_height() - 1);
@@ -140,7 +140,7 @@ void triangle(const std::array<Vec2i, 3> &pts, TGAImage &image,
   }
 }
 
-void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
+void rasterize2D(Vec2i p, Vec2i q, Image &image, Color color,
                  std::vector<int> &ybuffer) {
   if (p[0] > q[0]) {
     std::swap(p, q);
@@ -157,7 +157,7 @@ void rasterize2D(Vec2i p, Vec2i q, TGAImage &image, TGAColor color,
 }
 
 void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
-              TGAImage &image, std::function<TGAColor(Vec3f)> shader) {
+              Image &image, std::function<Color(Vec3f)> shader) {
   Vec2f bboxmin(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
   Vec2f bboxmax(-std::numeric_limits<float>::max(),
@@ -189,7 +189,7 @@ void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
 }
 
 void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
-              TGAImage &image, IShader& shader) {
+              Image &image, IShader& shader) {
   Vec2f bboxmin(std::numeric_limits<float>::max(),
                 std::numeric_limits<float>::max());
   Vec2f bboxmax(-std::numeric_limits<float>::max(),
@@ -207,7 +207,7 @@ void triangle(const std::array<Vec3f, 3> &pts, std::vector<float> &zbuffer,
       Vec3f bc_screen = barycentric(pts, Vec3f(float(x), float(y), 0.f));
       if (bc_screen[0] < 0 || bc_screen[1] < 0 || bc_screen[2] < 0)
         continue;
-        TGAColor color;
+        Color color;
       if (shader.fragment(bc_screen, color)) {
         float z = 0;
         for (int i = 0; i < 3; i++) {
