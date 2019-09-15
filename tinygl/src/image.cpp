@@ -1,28 +1,91 @@
 #include "image.h"
+#include <iostream>
 
-Image::Image(int width, int height) : _image(width, height) {}
+#define STB_IMAGE_IMPLEMENTATION
+#define STBI_FAILURE_USERMSG
+#include "stb/stb_image.h"
 
-Image::Image(const std::string &filename) : _image(filename) {}
+#define STB_IMAGE_WRITE_IMPLEMENTATION
+#include <stb/stb_image_write.h>
 
-void Image::set(int x, int y, Color color) { _image.set_pixel(x, y, color._color); }
+Image::Image(int width, int height) {
+  _data = (unsigned char *) stbi__malloc(width * height * 3);
+  if (_data) {
+    //std::fill(_data, _data + width * height * 3, 0);
+    _width = width;
+    _height = height;
+    _num_components = 3;  
+  }
+}
 
-Color Image::get(int x, int y) const { return Color {_image.get_pixel(x, y)}; }
+Image::Image(const std::string &filename) {
+  int x, y, n;
+  unsigned char *data = stbi_load(filename.c_str(), &x, &y, &n, 3);
+  if (data == nullptr) {
+    std::string error(stbi_failure_reason());
+    std::cout << "Error loading file :: " << filename << " :: "<< error << '\n';
+    return;
+  }
 
-int Image::get_width() const { return _image.width(); }
-int Image::get_height() const { return _image.height(); }
+  _width = x;
+  _height = y;
+  _num_components = 3;
+  _data = data;
+}
 
-void Image::write(const std::string &filename, bool flip) {
-  if (flip) {
-    _image.vertical_flip();
+Image::~Image() {
+  if (_data != NULL) {
+    stbi_image_free(_data);
+  }    
+}
+
+void Image::set(int x, int y, Color color) {
+  if (!_data || x < 0 || y < 0 || x >= _width || y >= _height) {
+    return;
+  }
+
+  memcpy(_data + (x + y * _width) * _num_components, color._rgb, _num_components);
+}
+
+Color Image::get(int x, int y) const { 
+  return Color(_data + (x + y * _width) * _num_components);
+}
+
+int Image::get_width() const { return _width; }
+int Image::get_height() const { return _height; }
+
+void Image::write(const std::string &filename, bool) {
+  //if (flip) {
+  //  _image.vertical_flip();
+  //}
+
+  auto get_extension = [](const std::string& filename) { 
+    std::string ret;
+    auto pos = filename.find('.');
+    if (pos != std::string::npos) {
+      ret = filename.substr(pos+1);
+    }
+    return ret;
+  };
+
+  auto ext = get_extension(filename);
+  if (ext == ".jpg" || ext == ".jpeg") {
+    stbi_write_jpg(filename.c_str(), _width, _height, _num_components, _data,
+                   90);  
+  } else if (ext == ".png") {
+    auto stride_in_bytes = _width * _num_components;
+    stbi_write_png(filename.c_str(), _width, _height, _num_components, _data,
+                   stride_in_bytes);
+  } else {
+    // Add more if required.
+    std::cout << "File format :: " << ext << " not implemented.\n";
   }  
-  _image.save_image(filename);
 }
 
 namespace Colors {
 Color random() {
-  return Color(unsigned char(rand() % 255),
-               unsigned char(rand() % 255),
-               unsigned char(rand() % 255));
+  return Color(Color::uchar(rand() % 255), Color::uchar(rand() % 255),
+               Color::uchar(rand() % 255));
 }
 
-}
+} // namespace Colors
