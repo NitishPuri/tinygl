@@ -11,7 +11,7 @@
 Image::Image(int width, int height) {
   _data = (unsigned char *) stbi__malloc(width * height * 3);
   if (_data) {
-    //std::fill(_data, _data + width * height * 3, 0);
+    std::fill(_data, _data + width * height * 3, Color::uchar(0));
     _width = width;
     _height = height;
     _num_components = 3;  
@@ -68,11 +68,13 @@ void Image::write(const std::string &filename, bool) {
     return ret;
   };
 
+  stbi_flip_vertically_on_write(1);
+
   auto ext = get_extension(filename);
-  if (ext == ".jpg" || ext == ".jpeg") {
+  if (ext == "jpg" || ext == "jpeg") {
     stbi_write_jpg(filename.c_str(), _width, _height, _num_components, _data,
                    90);  
-  } else if (ext == ".png") {
+  } else if (ext == "png") {
     auto stride_in_bytes = _width * _num_components;
     stbi_write_png(filename.c_str(), _width, _height, _num_components, _data,
                    stride_in_bytes);
