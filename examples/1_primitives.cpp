@@ -4,7 +4,7 @@
 #include <string>
 
 const std::string ROOT = ROOT_DIR;
-const std::string OUTFILE = ROOT + "out/1_primitives.bmp";
+const std::string OUTFILE = ROOT + "out/1_primitives.png";
 
 int main() {
   constexpr auto width = 800;
@@ -38,5 +38,8 @@ int main() {
   }
 
   image.write(OUTFILE);
+
+  system(OUTFILE.c_str());
+
   return 0;
 }
