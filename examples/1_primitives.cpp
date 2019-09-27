@@ -4,7 +4,7 @@
 #include <string>
 
 const std::string ROOT = ROOT_DIR;
-const std::string OUTFILE = ROOT + "out/1_primitives.png";
+const std::string OUTFILE = ROOT + "out/1_primitives.jpg";
 
 int main() {
   constexpr auto width = 800;
