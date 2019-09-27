@@ -6,7 +6,7 @@
 
 #include "paths.h"
 
-const auto MODEL = MODELS[1];
+const auto MODEL = MODELS[2];
 const auto PROJ_NO = "02_";
 
 constexpr int width = 800;
