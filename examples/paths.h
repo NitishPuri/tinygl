@@ -17,7 +17,7 @@ std::string GetDiffuseTexture(std::string model) {
 }
 
 std::string GetNormalTexture(std::string model) {
-  return BASE_DIR + "obj/" + model + "/" + model + "_nm.jpg";
+  return BASE_DIR + "obj/" + model + "/" + model + "_nm_tangent.jpg";
 }
 
 std::string GetOutputPath(const std::string model, const std::string proj,
