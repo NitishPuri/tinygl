@@ -21,15 +21,11 @@ template <class... Ts> MakeShader(Ts...)->MakeShader<Ts...>;
 
 int main() {
 
-  std::vector<App::Camera> cameras;
   auto make_camera = [&](Vec3f eye, auto name) { 
     auto center = Vec3f{0, 0, 0};
     auto up = Vec3f{0, 1, 0};
     return App::make_camera(eye, center, up, width, height, depth, name);
   };
-
-  cameras.emplace_back(make_camera({0, 0, 10}, "c_front"));
-  cameras.emplace_back(make_camera({10, 5, 10}, "c_ob"));
 
   auto make_NoShader = [](const App::Camera &camera, const Model *model) {
     auto shader = std::make_unique<Shaders::NoShader>();
@@ -106,9 +102,11 @@ int main() {
     Model model(Paths::GetObjPath(model_name));
     model.generateFaceNormals();
 
-    for (const auto &camera : cameras) {
-      std::vector<std::unique_ptr<IShader>> shaders;
+    std::vector<App::Camera> cameras;
+    cameras.emplace_back(make_camera({0, 0, 10}, "c_front"));
+    cameras.emplace_back(make_camera({10, 5, 10}, "c_ob"));
 
+    for (const auto &camera : cameras) {      
       // Composable shader maker lambda.
       MakeShader make_shader{ 
         [&](auto maker) { return maker(camera, &model); },
@@ -116,6 +114,7 @@ int main() {
           return maker(camera, &model, params...);
       }};
 
+      std::vector<std::unique_ptr<IShader>> shaders;
       shaders.emplace_back(make_shader(make_NoShader));
       shaders.emplace_back(make_shader(make_FlatShader));
       shaders.emplace_back(make_shader(make_WireframeShader));
