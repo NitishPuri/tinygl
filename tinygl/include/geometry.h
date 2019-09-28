@@ -1,9 +1,12 @@
 #pragma once
 
+#include <image.h>
+
 #include <array>
 #include <cmath>
 #include <iostream>
 #include <vector>
+
 
 ////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
@@ -81,11 +84,11 @@ template <typename t> Vec3<t> cross(Vec3<t> lhs, Vec3<t> rhs) {
   return lhs ^ rhs;
 }
 
-typedef Vec2<float> Vec2f;
-typedef Vec2<int> Vec2i;
-typedef Vec3<float> Vec3f;
-typedef Vec3<int> Vec3i;
-typedef std::array<float, 4> Vec4f;
+using Vec2f = Vec2<float>;
+using Vec2i = Vec2<int>;
+using Vec3f = Vec3<float>;
+using Vec3i = Vec3<int>;
+using Vec4f = std::array<float, 4>;
 
 template <class t> std::ostream &operator<<(std::ostream &s, Vec2<t> &v) {
   s << "(" << v.x() << ", " << v.y() << ")\n";
@@ -124,5 +127,7 @@ float map(float val, float from_start, float from_end, float to_start,
 Vec3f m2v(Matrix m);
 
 Matrix v2m(Vec3f v);
+
+Color get_uv(const Image &image, const Vec2f &uv);
 
 } // namespace utils
