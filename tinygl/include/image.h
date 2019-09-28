@@ -29,6 +29,10 @@ public:
             uchar(_rgb[2] + c._rgb[2])};
   }
 
+  uchar red()   const { return _rgb[0]; }
+  uchar green() const { return _rgb[1]; }
+  uchar blue()  const { return _rgb[2]; }
+
   uchar _rgb[3];
 };
 
