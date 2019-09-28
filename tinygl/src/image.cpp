@@ -54,11 +54,7 @@ Color Image::get(int x, int y) const {
 int Image::get_width() const { return _width; }
 int Image::get_height() const { return _height; }
 
-void Image::write(const std::string &filename, bool) {
-  //if (flip) {
-  //  _image.vertical_flip();
-  //}
-
+void Image::write(const std::string &filename, bool flip) {
   auto get_extension = [](const std::string& filename) { 
     std::string ret;
     auto pos = filename.find('.');
@@ -68,7 +64,8 @@ void Image::write(const std::string &filename, bool) {
     return ret;
   };
 
-  stbi_flip_vertically_on_write(1);
+  
+  stbi_flip_vertically_on_write(flip);
 
   auto ext = get_extension(filename);
   if (ext == "jpg" || ext == "jpeg") {
