@@ -117,7 +117,8 @@ int main() {
       };
 
       std::vector<std::unique_ptr<IShader>> shaders;
-      shaders.emplace_back( make_shader(make_NormalMappingShader, &normal_texture));
+      shaders.emplace_back(
+          make_shader(make_NormalMappingShader, &normal_texture));
       shaders.emplace_back(make_shader(make_NormalMappingDiffuseTextureShader,
                                        &texture, &normal_texture));
 
