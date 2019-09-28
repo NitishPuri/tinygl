@@ -44,6 +44,8 @@ struct Camera {
   Matrix ModelView;
   Matrix ViewportProjectionView;
 
+  std::string _name;
+
   void initialize() {
     Vec3f view_dir = (eye - center).normalize();
 
@@ -56,5 +58,19 @@ struct Camera {
   }
 };
 
-}
+App::Camera make_camera(Vec3f eye, Vec3f center, Vec3f up,
+                        int width, int height, int depth,
+                        const std::string &name) {
+  App::Camera camera;
+  camera.eye = eye;
+  camera.center = center;
+  camera.up = up;
+  camera.viewport_width = width;
+  camera.viewport_height = height;
+  camera.viewport_depth = depth;
+  camera._name = name;
+  camera.initialize();
+  return camera;
+};
 
+} // namespace App

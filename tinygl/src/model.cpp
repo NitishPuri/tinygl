@@ -66,14 +66,15 @@ Vec3f Model::face_normal(int i) const { return face_norms[i]; }
 
 void Model::generateFaceNormals()
 {
-  face_norms.clear();
-  face_norms.reserve(faces_.size());
-  for (const auto& face : faces_) {
-    auto get_vertex = [&](auto vidx) { return vert(face[vidx].v_idx); };
+  if (face_norms.empty()) {  // We don't expect them to change.
+    face_norms.reserve(faces_.size());
+    for (const auto &face : faces_) {
+      auto get_vertex = [&](auto vidx) { return vert(face[vidx].v_idx); };
 
-    Vec3f face_normal = Vec3f(get_vertex(2) - get_vertex(0)) ^
-                        Vec3f(get_vertex(1) - get_vertex(0));
-    face_normal.normalize();
-    face_norms.push_back(face_normal);
+      Vec3f face_normal = Vec3f(get_vertex(2) - get_vertex(0)) ^
+                          Vec3f(get_vertex(1) - get_vertex(0));
+      face_normal.normalize();
+      face_norms.push_back(face_normal);
+    }  
   }
 }
