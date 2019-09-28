@@ -6,8 +6,9 @@
 #include "tinygl.h"
 
 #include "paths.h"
+#include "app_utils.h"
 
-const auto MODEL = MODELS[0];
+const auto MODEL = Paths::MODELS[0];
 const auto PROJ_NO = "07_";
 
 constexpr int width = 800;
@@ -240,8 +241,8 @@ struct DiffuseTextureShader : IShader {
 };
 
 int main() {
-  Image texture(GetDiffuseTexture(MODEL));
-  Model model(GetObjPath(MODEL));
+  Image texture(Paths::GetDiffuseTexture(MODEL));
+  Model model(Paths::GetObjPath(MODEL));
 
   Vec3f eye(10, 5, 10);
   Vec3f center(0, 0, 0);
@@ -355,9 +356,9 @@ int main() {
               << ") :: " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC
               << "ms\n";
 
-    image.write(GetOutputPath(MODEL, PROJ_NO, shader->_name));
+    image.write(Paths::GetOutputPath(MODEL, PROJ_NO, shader->_name));
 
-    system(GetOutputPath(MODEL, PROJ_NO, shader->_name).c_str());
+    system(Paths::GetOutputPath(MODEL, PROJ_NO, shader->_name).c_str());
   }
 
   std::cout << "Press any key to exit...\n";

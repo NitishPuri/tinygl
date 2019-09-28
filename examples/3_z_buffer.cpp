@@ -6,6 +6,8 @@
 
 #include "paths.h"
 
+using namespace Paths;
+
 const auto MODEL = MODELS[1];
 const auto PROJ_NO = "03_";
 

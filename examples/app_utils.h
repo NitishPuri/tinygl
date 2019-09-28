@@ -47,9 +47,6 @@ struct Camera {
   void initialize() {
     Vec3f view_dir = (eye - center).normalize();
 
-    Vec3f light_dir{0, 0.5, -1};
-    light_dir.normalize();
-
     Projection = projection((eye - center).norm());
     ViewPort = viewport(viewport_width / 8, viewport_height / 8,
                         viewport_width * 3 / 4, viewport_height * 3 / 4,
