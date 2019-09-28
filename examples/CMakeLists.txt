@@ -23,6 +23,7 @@ add_example(6_camera)
 add_example(7_shading)
 add_example(7_shading_all)
 add_example(8_normal_mapping)
+add_example(9_phong_shading)
 
 
 add_compile_definitions(ROOT_DIR="${PROJECT_SOURCE_DIR}/")
