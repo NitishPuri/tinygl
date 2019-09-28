@@ -123,6 +123,11 @@ Matrix v2m(Vec3f v) {
   return m;
 }
 
+Color get_uv(const Image& image, const Vec2f& uv)
+{
+  return image.get(int(uv.x() * image.get_width()),
+                   int((1 - uv.y()) * image.get_height()));
+}
 
 }
 
