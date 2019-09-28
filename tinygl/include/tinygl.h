@@ -31,6 +31,7 @@ struct IShader {
   std::string _name;
   virtual Vec3f vertex(int face_idx, int v_idx) = 0;
   virtual bool fragment(Vec3f bc, Color &color) = 0;
+  virtual void setup() {};
   virtual ~IShader() = default;
 };
 
