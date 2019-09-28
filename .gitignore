@@ -2,3 +2,5 @@
 t-cppcheck*
 
 build
+/out/
+/obj/
