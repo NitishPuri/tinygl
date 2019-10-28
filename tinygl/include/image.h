@@ -46,6 +46,8 @@ public:
   void set(int x, int y, Color color);
   Color get(int x, int y) const;
 
+  unsigned char* data() { return _data; }
+
   int get_width() const;
   int get_height() const;
 

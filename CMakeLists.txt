@@ -22,6 +22,7 @@ message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")
 
 add_subdirectory(tinygl)
 
-add_subdirectory(examples)
+# add_subdirectory(examples)
+add_subdirectory(windowing)
 
 

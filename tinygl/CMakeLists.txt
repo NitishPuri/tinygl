@@ -10,4 +10,4 @@ add_library(
         ${TINY_SOURCE}
 )
 
-add_subdirectory("src/tests")
+# add_subdirectory("src/tests")
