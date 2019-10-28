@@ -119,9 +119,9 @@ struct SmoothShader : IShader {
   }
   bool fragment(Vec3f bc, Color &color) override {
     auto intensity = v_intensity * bc;
-    color = Color(unsigned char(intensity * 255),
-                  unsigned char((1 - intensity) * intensity * 255),
-                  unsigned char(intensity * 255));
+    color = Color(uchar(intensity * 255),
+                  uchar((1 - intensity) * intensity * 255),
+                  uchar(intensity * 255));
     return true;
   }
 };
@@ -159,9 +159,9 @@ struct ToonShader : IShader {
       intensity = .30;
     else
       intensity = 0;
-    color = Color(unsigned char(intensity * 255),
-                  unsigned char((1 - intensity) * intensity * 200),
-                  unsigned char(intensity * 255));
+    color = Color(uchar(intensity * 255),
+                  uchar((1 - intensity) * intensity * 200),
+                  uchar(intensity * 255));
     return true;
   }
 };
@@ -187,9 +187,9 @@ struct DeepPurpleFlatShader : IShader {
     return utils::m2v(u_mvp * utils::v2m(v));
   }
   bool fragment(Vec3f, Color &color) override {
-    color = Color(unsigned char(v_intensity * 255),
-                  unsigned char((1 - v_intensity) * v_intensity * 255),
-                  unsigned char(v_intensity * 255));
+    color = Color(uchar(v_intensity * 255),
+                  uchar((1 - v_intensity) * v_intensity * 255),
+                  uchar(v_intensity * 255));
     // color = Color(
     //    unsigned char(
     //        ((sin(utils::map(v_intensity, 0, 1, 0, 6.28f)) + 1) / .5) * 255),

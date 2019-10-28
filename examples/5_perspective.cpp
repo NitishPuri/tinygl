@@ -96,7 +96,7 @@ int main() {
   for (int i = 0; i < width; i++) {
     for (int j = 0; j < height; j++) {
       if (zbuffer[i + j * width] > 0) {
-        z_img.set(i, j, Color(unsigned char(zbuffer[i + j * width])));
+        z_img.set(i, j, Color(uchar(zbuffer[i + j * width])));
       }
     }
   }

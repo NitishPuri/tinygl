@@ -2,6 +2,8 @@
 
 #include <model.h>
 #include <tinygl.h>
+#include <memory>
+#include <limits>
 
 #include "paths.h"
 

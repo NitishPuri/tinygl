@@ -6,6 +6,8 @@
 #include <vector>
 
 Model::Model(const std::string filename) : verts_(), faces_() {
+  std::cout << "Reading Model " << filename << std::endl;
+
   std::ifstream in;
   in.open(filename, std::ifstream::in);
   if (in.fail())

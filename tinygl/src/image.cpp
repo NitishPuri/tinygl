@@ -11,7 +11,7 @@
 Image::Image(int width, int height) {
   _data = (unsigned char *) stbi__malloc(width * height * 3);
   if (_data) {
-    std::fill(_data, _data + width * height * 3, Color::uchar(0));
+    std::fill(_data, _data + width * height * 3, uchar(0));
     _width = width;
     _height = height;
     _num_components = 3;  
@@ -83,8 +83,8 @@ void Image::write(const std::string &filename, bool flip) {
 
 namespace Colors {
 Color random() {
-  return Color(Color::uchar(rand() % 255), Color::uchar(rand() % 255),
-               Color::uchar(rand() % 255));
+  return Color(uchar(rand() % 255), uchar(rand() % 255),
+               uchar(rand() % 255));
 }
 
 } // namespace Colors

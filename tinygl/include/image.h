@@ -3,9 +3,9 @@
 #include <array>
 #include <string>
 
+using uchar = unsigned char;
 struct Color {
-  using uchar = unsigned char;
-
+  
 public:
   constexpr Color() : _rgb{0, 0, 0} {}
   constexpr Color(uchar r, uchar g, uchar b) : _rgb{r, g, b} {}
