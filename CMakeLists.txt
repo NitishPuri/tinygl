@@ -6,8 +6,16 @@ cmake_minimum_required(VERSION 2.6)
 
 project(tinygl)
 
-add_definitions(/W4 /std:c++17)
-add_definitions(/WX)
+if(MSVC)
+    # Visual C++
+    add_compile_options(/W4 /std:c++17)
+    add_compile_options(/WX)
+endif()
+
+if(UNIX AND NOT APPLE)
+    # Linux/GCC
+    add_compile_options(-std=c++1z)
+endif()
 
 message("CMAKE_CXX_FLAGS_DEBUG is ${CMAKE_CXX_FLAGS_DEBUG}")
 message("CMAKE_CXX_FLAGS_RELEASE is ${CMAKE_CXX_FLAGS_RELEASE}")

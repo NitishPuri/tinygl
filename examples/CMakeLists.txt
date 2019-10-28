@@ -7,27 +7,26 @@ find_library(tinygl tinygl
 
 
 
-macro(add_example example_name)
-	message("example : ${example_name}")
-    add_compile_definitions(ROOT_DIR="${PROJECT_SOURCE_DIR}/")
-    add_executable(${example_name} "${example_name}.cpp")
-    target_link_libraries(${example_name} tinygl)    
+macro(add_project project_name)
+    message("Adding project : ${project_name}")
+    # add_compile_definitions(ROOT_DIR="${PROJECT_SOURCE_DIR}/")
+    add_definitions(-DROOT_DIR="${PROJECT_SOURCE_DIR}/")
+    add_executable(${project_name} "${project_name}.cpp")
+    target_link_libraries(${project_name} tinygl)    
 endmacro()
 
-add_example(1_primitives)
-add_example(2_mesh)
-add_example(3_z_buffer)
-add_example(4_texture_mapping)
-add_example(5_perspective)
-add_example(6_camera)
-add_example(7_shading)
-add_example(7_shading_all)
-add_example(8_normal_mapping)
-add_example(9_phong_shading)
+add_project(1_primitives)
+add_project(2_mesh)
+add_project(3_z_buffer)
+add_project(4_texture_mapping)
+add_project(5_perspective)
+add_project(6_camera)
+add_project(7_shading)
+add_project(7_shading_all)
+add_project(8_normal_mapping)
+add_project(9_phong_shading)
 
 
-add_compile_definitions(ROOT_DIR="${PROJECT_SOURCE_DIR}/")
-add_executable(file_conversion "file_conversion.cpp")
-target_link_libraries(file_conversion tinygl)    
+add_project(file_conversion)
 
 
