@@ -1,7 +1,8 @@
 #include "window.h"
 
-Window::Window(Image* img) {
+Window::Window(Image* img, Window::WindowInput* handler) {
     image = img;
+    input_handler = handler;
     auto res = InitWindow();
     if (res == -1) {
         std::cout << "Could not initialize window.\n";
@@ -25,11 +26,29 @@ int Window::InitWindow() {
 
     glfwSwapInterval(1);
 
-    glfwSetKeyCallback(window, [](GLFWwindow* w, int key, int, int action, int) {
-        if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-            glfwSetWindowShouldClose(w, GL_TRUE);
-        }
-    });
+    if (input_handler) {
+        glfwSetWindowUserPointer(window, input_handler);
+        glfwSetMouseButtonCallback(window, [](GLFWwindow* window, int button, int action, int mods) {
+            WindowInput& data = *(WindowInput*)glfwGetWindowUserPointer(window);
+            data.handleMouseButton(button, action, mods);
+        });
+        glfwSetCursorPosCallback(window, [](GLFWwindow* window, double xPos, double yPos) {
+            WindowInput& data = *(WindowInput*)glfwGetWindowUserPointer(window);
+            data.handleMouseMove(float(xPos), float(yPos));
+        });
+        glfwSetScrollCallback(window, [](GLFWwindow* window, double xOffset, double yOffset) {
+            WindowInput& data = *(WindowInput*)glfwGetWindowUserPointer(window);
+            data.handleMouseScroll(float(xOffset), float(yOffset));
+        });
+    }
+    //else {
+        glfwSetKeyCallback(window, [](GLFWwindow* w, int key, int, int action, int) {
+            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
+                glfwSetWindowShouldClose(w, GL_TRUE);
+            }
+        });
+    //}
+
 
     // Bind textures and stuff
     // Doing that here since we only want to do this once.

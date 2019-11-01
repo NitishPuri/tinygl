@@ -7,7 +7,15 @@
 class Window {
 
 public:
-    Window(Image* img);
+
+    class WindowInput {
+    public:
+        virtual void handleMouseButton(int button, int action, int mods) = 0;
+        virtual void handleMouseMove(float xPos, float yPos) = 0;
+        virtual void handleMouseScroll(float xOffset, float yOffset) = 0;
+    };
+
+    Window(Image* img, WindowInput* input_handler = nullptr);
 
     int InitWindow();
 
@@ -30,7 +38,9 @@ private:
 
     void RenderOnScreen();
 
-    GLFWwindow* window;
+    GLFWwindow* window = nullptr;
+    WindowInput* input_handler = nullptr;
     Image* image;
     float border = 0.05f;
+
 };
