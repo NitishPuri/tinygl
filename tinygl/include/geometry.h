@@ -107,7 +107,8 @@ public:
   inline int ncols();
 
   static Matrix identity(int dimensions);
-  std::vector<float> &operator[](int i);
+  const std::vector<float> &operator[](int i) const;
+  std::vector<float> &operator[] (int i);
   Matrix operator*(const Matrix &a) const;
 
   Matrix transpose() const;
@@ -124,9 +125,9 @@ namespace utils {
 float map(float val, float from_start, float from_end, float to_start,
           float to_end);
 
-Vec3f m2v(Matrix m);
+Vec3f m2v(const Matrix& m);
 
-Matrix v2m(Vec3f v);
+Matrix v2m(const Vec3f& v);
 
 Color get_uv(const Image &image, const Vec2f &uv);
 

@@ -1,12 +1,10 @@
-
-#include <GLFW/glfw3.h>
-
 #include "model.h"
 #include "tinygl.h"
 #include <string>
 #include <ctime>
 
 #include "paths.h"
+#include "window.h"
 
 using namespace Paths;
 
@@ -16,113 +14,6 @@ const auto PROJ_NO = "03_";
 constexpr int width = 800;
 constexpr int height = 800;
 constexpr int depth = 255;
-
-class Window {
-
-public:
-    Window(Image* img) {
-        image = img;
-        auto res = InitWindow();
-        if (res == -1) {
-            std::cout << "Could not initialize window.\n";
-        }
-    }
-
-    int InitWindow() {
-        /* Initialize the library */
-        if (!glfwInit())
-            return -1;
-
-        /* Create a windowed mode window and its OpenGL context */
-        window = glfwCreateWindow(width, height, "Hello World", NULL, NULL);
-        if (!window) {
-            glfwTerminate();
-            return -1;
-        }
-
-        /* Make the window's context current */
-        glfwMakeContextCurrent(window);
-
-        glfwSwapInterval(1);
-
-        glfwSetKeyCallback(window, [](GLFWwindow* w, int key, int, int action, int) {
-            if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE) {
-                glfwSetWindowShouldClose(w, GL_TRUE);
-            }
-        });
-
-        // Bind textures and stuff
-        // Doing that here since we only want to do this once.
-        glEnable(GL_TEXTURE_2D);
-        glClearColor(1.0f, 0.0f, 0.5f, 1.0f);
-
-        GLuint m_texture;
-        glGenTextures(1, &m_texture);
-        glBindTexture(GL_TEXTURE_2D, m_texture);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-
-        return 1;
-    }
-
-    template<typename T>
-    void Run(T update_callback) {
-        while (!glfwWindowShouldClose(window))
-        {
-            // Update things here!!
-            update_callback();
-
-
-            /* Render here */
-            glClear(GL_COLOR_BUFFER_BIT);
-
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image->data());
-
-            {
-                float d = 1 - border;
-
-                glBegin(GL_TRIANGLES);
-
-                glTexCoord2f(0, 0);
-                glVertex2f(-d, -d);
-
-                glTexCoord2f(0, 1);
-                glVertex2f(-d, d);
-
-                glTexCoord2f(1, 1);
-                glVertex2f(d, d);
-
-                glTexCoord2f(1, 1);
-                glVertex2f(d, d);
-
-                glTexCoord2f(1, 0);
-                glVertex2f(d, -d);
-
-                glTexCoord2f(0, 0);
-                glVertex2f(-d, -d);
-
-                glEnd();
-            }
-
-            /* Swap front and back buffers */
-            glfwSwapBuffers(window);
-
-            /* Poll for and process events */
-            glfwPollEvents();
-        }
-
-
-        glfwTerminate();
-    }
-
-
-private:
-    GLFWwindow* window;
-    Image* image;
-    float border = 0.05f;
-};
 
 auto map_to_screen(Vec3f v) {
     auto x = floor((v.x() + 1.f) * width / 2.f + .5f);
@@ -137,7 +28,7 @@ void render_mesh(std::vector<float>& zbuffer, Image& image, const Model& model, 
 
     // Clear depth and color buffers!
     memset(&zbuffer[0], 0, sizeof(zbuffer[0]) * zbuffer.size());
-    memset(image.data(), Color::uchar(0), width * height * 3);
+    memset(image.data(), uchar(0), width * height * 3);
 
     for (int f = 0; f < model.nfaces(); f++) {
         const auto &face = model.face(f);
@@ -189,7 +80,7 @@ int main() {
     window.Run([&]() {
         //color._rgb[0] += 1;
         color._rgb[1] += 10;
-        //color._rgb[2] += 3;
+        color._rgb[2] += 3;
         render_mesh(zbuffer, image, model, light_dir, color);
     });
 
