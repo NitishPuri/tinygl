@@ -4,6 +4,8 @@
 #include <ctime>
 
 #include "paths.h"
+#include "app_utils.h"
+#include "shaders.h"
 #include "window.h"
 
 using namespace Paths;
@@ -15,74 +17,102 @@ constexpr int width = 800;
 constexpr int height = 800;
 constexpr int depth = 255;
 
-auto map_to_screen(Vec3f v) {
-    auto x = floor((v.x() + 1.f) * width / 2.f + .5f);
-    auto y = floor((v.y() + 1.f) * height / 2.f + .5f);
-    auto z = floor((v.z() + 1.f) * depth / 2.f + .5f);
-    return Vec3f{ x, y, z };
-};
+class CameraManipulator : public Window::WindowInput {
+public:
+    CameraManipulator(App::Camera& camera) : _camera(camera) {};
 
-void render_mesh(std::vector<float>& zbuffer, Image& image, const Model& model, const Vec3f& light_dir,
-    const Color& color) {
-    std::clock_t c_start = std::clock();
-
-    // Clear depth and color buffers!
-    memset(&zbuffer[0], 0, sizeof(zbuffer[0]) * zbuffer.size());
-    memset(image.data(), uchar(0), width * height * 3);
-
-    for (int f = 0; f < model.nfaces(); f++) {
-        const auto &face = model.face(f);
-
-        auto get_vertex = [&](auto vidx) { return model.vert(face[vidx].v_idx); };
-        auto get_tex = [&](auto vidx) { return model.tex(face[vidx].t_idx); };
-
-        // light intensity
-        Vec3f n = (get_vertex(2) - get_vertex(0)) ^ (get_vertex(1) - get_vertex(0));
-        n.normalize();
-        float intensity = n * light_dir;
-
-        if (intensity < 0)
-            continue;
-
-        std::array<Vec3f, 3> vertices{ map_to_screen(get_vertex(0)),
-                                       map_to_screen(get_vertex(1)),
-                                      map_to_screen(get_vertex(2)) };
-
-        // Flat shading
-        auto color_flat = [intensity, &color](Vec3f) {
-            //return Color(char(intensity * 255.));
-            return color * intensity;
-            // return Colors::White;
-        };
-
-        triangle(vertices, zbuffer, image, color_flat);
+    void handleMouseButton(int button, int action, int ) override
+    {
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            if (action == GLFW_PRESS) {
+                is_pressed = true;
+            }
+            else if (action == GLFW_RELEASE) {
+                is_pressed = false;
+            }
+        }
     }
 
-    std::clock_t c_end = std::clock();
-    std::cout << "Elapsed time for rendering :: "
-        << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << "ms\n";
+    void handleMouseMove(float xPos, float yPos) override
+    {
+        if (is_pressed) {
+            auto d = _lastPos - Vec2f{ xPos, yPos };
+            _camera.eye = _camera.eye + Vec3f{d.x(), -d.y(), 0.0} * 0.1f;
+            _camera.initialize();
+        }
+        _lastPos = Vec2f{ xPos, yPos };
+    }
 
+    void handleMouseScroll(float , float yOffset) override
+    {
+        _camera.eye = _camera.eye - Vec3f{ 0.0, 0.0, yOffset };
+        _camera.initialize();
+    }
+
+private:
+    App::Camera& _camera;
+    bool is_pressed = false;
+    Vec2f _lastPos;
 };
-
 
 int main() {
 
     Image image(width, height);
     Model model(GetObjPath(MODEL));
 
-    Window window(&image);
+    auto make_camera = [&](Vec3f eye, auto name) {
+        auto center = Vec3f{ 0, 0, 0 };
+        auto up = Vec3f{ 0, 1, 0 };
+        return App::make_camera(eye, center, up, width, height, depth, name);
+    };
+    auto camera = make_camera({ 0, 0, 10 }, "main_camera");
+
+
+    CameraManipulator handler(camera);
+    Window window(&image, &handler);
 
     Vec3f light_dir{ 0, 0, -1 };
     std::vector<float> zbuffer(width * height, std::numeric_limits<float>::min());
 
-    Color color = Colors::Red;
 
-    window.Run([&]() {
-        //color._rgb[0] += 1;
-        color._rgb[1] += 10;
-        color._rgb[2] += 3;
-        render_mesh(zbuffer, image, model, light_dir, color);
-    });
+    auto make_GouraudShader = [](const App::Camera &camera, const Model *model) {
+        auto shader = std::make_unique<Shaders::GouraudShader>();
+        shader->model = model;
+        shader->u_lightDir = Vec3f(0, 0, -1).normalize();
+        shader->u_color = Colors::White;
+        shader->u_mvp = camera.ViewportProjectionView;
+        return shader;
+    };
+
+    auto shader = make_GouraudShader(camera, &model);
+
+    auto render_with_shader = [&]() {
+        std::clock_t c_start = std::clock();
+
+        // Clear depth and color buffers!
+        memset(&zbuffer[0], 0, sizeof(zbuffer[0]) * zbuffer.size());
+        memset(image.data(), uchar(0), width * height * 3);
+
+        // shader->updateCamera !!
+        shader->u_mvp = camera.ViewportProjectionView;
+
+        // shader->update uniforms !!
+
+        for (int f = 0; f < model.nfaces(); f++) {
+            std::array<Vec3f, 3> screen_coord{
+                shader->vertex(f, 0), shader->vertex(f, 1), shader->vertex(f, 2) };
+
+            triangle(screen_coord, zbuffer, image, *shader);
+        }
+
+        std::clock_t c_end = std::clock();
+        std::cout << "Elapsed time for rendering with shader (" << shader->_name
+            << ") :: " << 1000.0 * (c_end - c_start) / CLOCKS_PER_SEC << "ms\n";
+
+    };
+
+
+    window.Run(render_with_shader);
 
     std::cout << "Press any key to exit...\n";
 
