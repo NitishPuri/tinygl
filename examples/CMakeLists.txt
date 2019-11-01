@@ -5,7 +5,7 @@ find_library(tinygl tinygl
         ${PROJECT_SOURCE_DIR}/
 )
 
-
+include_directories(${PROJECT_SOURCE_DIR}/utils)
 
 macro(add_project project_name)
     message("Adding project : ${project_name}")
